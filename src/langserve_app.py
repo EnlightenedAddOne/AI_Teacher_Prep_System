@@ -71,7 +71,7 @@ async def generate_exercises_endpoint(request: ExerciseRequest):
 # 下载 PDF 文件
 @app.get("/download/{filename}")
 async def download_file(filename: str):
-    file_path = os.path.join(os.path.dirname(__file__), '../output/teaching_designs/pdf', filename)
+    file_path = os.path.join(os.path.dirname(__file__), '../output/PDF', filename)
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="File not found")
     return FileResponse(file_path)

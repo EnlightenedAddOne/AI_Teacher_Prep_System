@@ -22,7 +22,7 @@ def save_to_pdf(content, title, filename):
     FONT_SIZE_XIAOWU = 9  # 小五号（页码）
 
     # 设置保存路径
-    output_dir = os.path.join(os.path.dirname(__file__), '..', 'output', 'teaching_designs', 'pdf')
+    output_dir = os.path.join(os.path.dirname(__file__), '..', 'output', 'PDF')
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
@@ -30,7 +30,7 @@ def save_to_pdf(content, title, filename):
     c = canvas.Canvas(filepath, pagesize=letter)
 
     # 注册中文字体
-    font_path = os.path.join(os.path.dirname(__file__), 'ziti', 'simkai.ttf')
+    font_path = os.path.join(os.path.dirname(__file__), '..', 'ziti', 'simkai.ttf')
     register_font('SimKai', font_path)
 
     # 设置字体大小为小四号(12pt)
@@ -175,7 +175,7 @@ def content_to_pdf(contents, titles, filenames):
         # 调用 save_to_pdf 函数生成 PDF
         save_to_pdf(content, title, filename)
 
-        filepath = os.path.join(os.path.dirname(__file__), '../output/teaching_designs/pdf', filename)
+        filepath = os.path.join(os.path.dirname(__file__), '../output/PDF', filename)
         if not os.path.exists(filepath):
             raise HTTPException(status_code=500, detail=f"PDF generation failed for {filename}")
 
