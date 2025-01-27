@@ -7,7 +7,6 @@ from config import config
 from fpdf import FPDF
 import os
 
-
 class PDF(FPDF):
     # 定义PDF类的构造函数，继承自FPDF类
     def header(self):
