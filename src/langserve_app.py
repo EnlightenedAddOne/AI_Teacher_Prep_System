@@ -1,6 +1,7 @@
+# 程序入口
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
-from pydantic import BaseModel
+from models import TeachingDesignRequest, ExerciseRequest
 from langserve import add_routes
 from langchain_core.runnables import Runnable
 from teaching_design import generate_teaching_design
@@ -14,22 +15,6 @@ app = FastAPI()
 
 # 使用工具函数设置 CORS 中间件
 setup_cors(app)
-
-
-# 定义请求体模型
-class TeachingDesignRequest(BaseModel):
-    subject: str
-    topic: str
-    goals: str
-    duration: str
-    grade: str
-
-
-class ExerciseRequest(BaseModel):
-    subject: str
-    topic: str
-    degree: str
-    exercise_config: dict
 
 
 @app.post("/generate-teaching-design")

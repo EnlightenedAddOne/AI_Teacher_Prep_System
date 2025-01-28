@@ -3,6 +3,10 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+from reportlab.lib.units import inch, mm
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import Paragraph, Frame, KeepInFrame
+import re
 import os
 from fastapi import HTTPException
 
@@ -14,13 +18,6 @@ def register_font(font_name, font_path):
 
 
 def save_to_pdf(content, title, filename):
-    # 字号定义
-    FONT_SIZE_XIAOER = 20  # 小二号
-    FONT_SIZE_SANHAO = 18  # 三号
-    FONT_SIZE_XIAOSAN = 16  # 小三
-    FONT_SIZE_SIHAO = 14  # 四号（正文）
-    FONT_SIZE_XIAOWU = 9  # 小五号（页码）
-
     # 设置保存路径
     output_dir = os.path.join(os.path.dirname(__file__), '..', 'output', 'PDF')
     if not os.path.exists(output_dir):
@@ -33,139 +30,155 @@ def save_to_pdf(content, title, filename):
     font_path = os.path.join(os.path.dirname(__file__), '..', 'ziti', 'simkai.ttf')
     register_font('SimKai', font_path)
 
-    # 设置字体大小为小四号(12pt)
-    font_size = 12
-    c.setFont("SimKai", font_size)
+    # 获取样式表
+    styles = getSampleStyleSheet()
+    
+    # 定义标题样式
+    title_style = ParagraphStyle(
+        name='Title',
+        fontName='SimKai',
+        fontSize=24,
+        leading=30,
+        textColor='black',
+        alignment=1,  # 居中对齐
+        spaceAfter=15,  # 减小标题后的间距
+        spaceBefore=5,  # 进一步减小标题上边距
+    )
+    
+    # 定义一级标题样式
+    heading1_style = ParagraphStyle(
+        name='Heading1',
+        fontName='SimKai',  
+        fontSize=18,
+        leading=27,
+        textColor='black',
+        alignment=0,  # 左对齐
+        spaceAfter=12,
+    )
+
+    # 定义二级标题样式  
+    heading2_style = ParagraphStyle(
+        name='Heading2',
+        fontName='SimKai',
+        fontSize=16, 
+        leading=24,
+        textColor='black',
+        alignment=0,
+        spaceAfter=12,
+    )
+    
+    # 定义三级标题样式
+    heading3_style = ParagraphStyle( 
+        name='Heading3',
+        fontName='SimKai',
+        fontSize=14,
+        leading=21, 
+        textColor='black',
+        alignment=0,
+        spaceAfter=12,
+    )
+    
+    # 定义四级标题样式
+    heading4_style = ParagraphStyle(
+        name='Heading4',
+        fontName='SimKai',
+        fontSize=14,
+        leading=18,
+        textColor='black', 
+        alignment=0,
+        spaceAfter=12,
+    )
+
+    # 定义正文样式
+    normal_style = ParagraphStyle(
+        name='Normal',
+        fontName='SimKai',
+        fontSize=14,
+        leading=18,
+        textColor='black',
+        alignment=0,
+        firstLineIndent=24,  # 首行缩进2个字符
+        spaceAfter=12,
+    )
+
+    # 定义页码样式
+    page_number_style = ParagraphStyle(
+        name='PageNumber',
+        fontName='SimKai',
+        fontSize=10,
+        alignment=1,  # 居中对齐
+        textColor='gray',
+    )
+
+    def add_page_number(canvas, doc):
+        page_number = canvas.getPageNumber()
+        text = f"第 {page_number} 页"
+        p = Paragraph(text, page_number_style)
+        w, h = p.wrap(frame_width, 10*mm)
+        p.drawOn(canvas, (frame_width - w) / 2, 10*mm)
 
     # 页面设置
-    margin_left = 50
-    margin_right = 50
-    max_width = letter[0] - margin_left - margin_right
+    margin = 0.5 * inch  # 页边距
+    frame_width = letter[0] - 2 * margin 
+    frame_height = letter[1] - 2 * margin
 
-    # 设置1.5倍行间距
-    base_line_height = font_size  # 基础行高等于字体大小
-    line_spacing = 1.5  # 1.5倍行距
-    line_height = base_line_height * line_spacing
+    # 创建框架
+    frame = Frame(margin, margin + 5*mm, frame_width, frame_height - 35*mm)  # 调整框架位置和高度
 
-    # 计算每页最大行数
-    page_top_margin = 100  # 页面顶部留白
-    max_lines_per_page = int((letter[1] - page_top_margin) / line_height) - 1
-
-    def split_text_to_lines(text, max_width):
-        """将文本分割成适合页面宽度的多行"""
-        lines = []
-        paragraphs = text.split('\n')
-        
-        def process_line(line, add_indent=False):
-            """处理单行文本，根据宽度进行换行"""
-            if add_indent:
-                line = '    ' + line
-            words = list(line)
-            current_line = ""
-            for word in words:
-                test_line = current_line + word
-                if c.stringWidth(test_line, "SimKai", FONT_SIZE_SIHAO) <= max_width:
-                    current_line = test_line
-                else:
-                    lines.append(current_line)
-                    current_line = word
-            if current_line:
-                lines.append(current_line)
-        
-        for paragraph in paragraphs:
-            paragraph = paragraph.strip()
-            
-            if not paragraph:
-                continue
-                
-            # 检查是否为加粗或斜体文本
-            if '**' in paragraph or '*' in paragraph:
-                text = paragraph.replace('**', '').replace('*', '')
-                process_line(text)
-                continue
-                
-            # 检查是否为markdown标题
-            if paragraph.startswith('#'):
-                heading_level = len(paragraph.split()[0])
-                text = paragraph[heading_level:].strip()
-                process_line(text)
-                continue
-                
-            # 检查是否为数字标题
-            is_title = any([
-                paragraph.startswith(str(i) + '.') for i in range(1, 10)
-            ]) or any([
-                paragraph.startswith(f'({i})') for i in range(1, 10)
-            ])
-            
-            if is_title:
-                process_line(paragraph)
-            else:
-                process_line(paragraph, True)  # 非标题添加缩进
-        
-        return lines
-
-    def draw_text(c, text_object, line, font_size, is_centered=False):
-        """处理文本渲染"""
-        text_object.setFont("SimKai", font_size)
-        if is_centered:  # 只有主标题居中
-            text_width = c.stringWidth(line, "SimKai", font_size)
-            text_x = (letter[0] - text_width) / 2 - margin_left
-            text_object.moveCursor(text_x, 0)
-            text_object.textLine(line)
-            text_object.moveCursor(-text_x, 0)
-        else:
-            text_object.textLine(line)
-
-    # 创建文本对象
-    text_object = c.beginText(margin_left, letter[1] - page_top_margin)
-    text_object.setFont("SimKai", FONT_SIZE_SIHAO)
-    text_object.setLeading(line_height)  # 设置行间距
-
-    # 绘制标题
-    draw_text(c, text_object, title, FONT_SIZE_XIAOER, True)
+    # 处理标题
+    title_paragraph = Paragraph(title, title_style)
 
     # 处理内容
-    text_lines = split_text_to_lines(content, max_width)
-    current_line = 0
-    page_number = 1
+    def process_markdown(text):
+        # 处理markdown格式
+        # 加粗
+        text = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', text)
+        # 斜体
+        text = re.sub(r'\*(.*?)\*', r'<i>\1</i>', text)
+        # 处理标题
+        text = re.sub(r'^#\s+(.*?$)', r'<h1>\1</h1>', text, flags=re.MULTILINE)
+        text = re.sub(r'^##\s+(.*?$)', r'<h2>\1</h2>', text, flags=re.MULTILINE)
+        text = re.sub(r'^###\s+(.*?$)', r'<h3>\1</h3>', text, flags=re.MULTILINE)
+        text = re.sub(r'^####\s+(.*?$)', r'<h4>\1</h4>', text, flags=re.MULTILINE)
+        # 去除行首的"-"号
+        text = re.sub(r'^\s*-\s+', '', text, flags=re.MULTILINE)
+        return text
 
-    for line in text_lines:
-        if current_line >= max_lines_per_page:
-            c.drawText(text_object)
-            c.setFont("SimKai", FONT_SIZE_XIAOWU)
-            c.drawString(letter[0] / 2, 20, str(page_number))
-            c.showPage()
-            page_number += 1
-            text_object = c.beginText(margin_left, 750)
-            text_object.setFont("SimKai", FONT_SIZE_SIHAO)
-            text_object.setLeading(line_height)
-            current_line = 0
+    def create_paragraph(text, style):
+        # 创建段落
+        processed_text = process_markdown(text)
+        return Paragraph(processed_text, style)
 
-        # 检查标题级别
-        if line.startswith('#'):
-            heading_level = len(line.split()[0])  # 计算#的数量
-            text = line[heading_level:].strip()
-            if heading_level == 1:  # 一级标题，三号
-                draw_text(c, text_object, text, FONT_SIZE_SANHAO, False)
-                text_object.setLeading(line_height * 1.5)  # 标题增加行间距
-            elif heading_level == 2:  # 二级标题，小三
-                draw_text(c, text_object, text, FONT_SIZE_XIAOSAN, False)
-                text_object.setLeading(line_height * 1.2)
-            elif heading_level == 3:  # 三级标题，四号
-                draw_text(c, text_object, text, FONT_SIZE_SIHAO, False)
-            text_object.setLeading(line_height)  # 恢复正常行间距
+    paragraphs = []
+    for line in content.split('\n'):
+        line = line.strip()
+        if not line:
+            continue
+        if line.startswith('# '):
+            paragraphs.append(create_paragraph(line[2:], heading1_style))
+        elif line.startswith('## '):
+            paragraphs.append(create_paragraph(line[3:], heading2_style))
+        elif line.startswith('### '):
+            paragraphs.append(create_paragraph(line[4:], heading3_style))
+        elif line.startswith('#### '):
+            paragraphs.append(create_paragraph(line[5:], heading4_style))
         else:
-            # 正文使用四号字
-            text_object.setFont("SimKai", FONT_SIZE_SIHAO)  # 确保设置字体
-            draw_text(c, text_object, line, FONT_SIZE_SIHAO, False)
+            paragraphs.append(create_paragraph(line, normal_style))
 
-        current_line += 1
+    # 绘制内容
+    frame.add(title_paragraph, c)
+    add_page_number(c, frame)
 
-    # 处理最后一页
-    c.drawText(text_object)
-    c.setFont("SimKai", FONT_SIZE_XIAOWU)
-    c.drawString(letter[0] / 2, 20, str(page_number))
+    for paragraph in paragraphs:
+        if not frame.add(paragraph, c):
+            add_page_number(c, frame)
+            c.showPage()
+            frame = Frame(margin, margin + 5*mm, frame_width, frame_height - 35*mm)
+            frame.add(paragraph, c)
+    
+    add_page_number(c, frame)  # 为最后一页添加页码
+    c.showPage()  # 确保最后一页也生成
+
     c.save()
 
 
