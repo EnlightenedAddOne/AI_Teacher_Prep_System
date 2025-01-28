@@ -1,5 +1,6 @@
 # Prompt模板定义
 from langchain.prompts import PromptTemplate
+from typing import Dict, Tuple, Any
 
 # 教学设计的LangChain Prompt模板
 teaching_design_prompt = PromptTemplate(
@@ -7,7 +8,7 @@ teaching_design_prompt = PromptTemplate(
     template="""
         你是一位在教育领域拥有丰富经验的专家，精通教学设计的各个环节，能够从宏观和微观角度审视教学方案，发现潜在问题并提出切实可行的设计方案。你熟悉不同年龄段和学习水平学生的特点，能够根据学生特点调整教学策略，使教学内容更加贴合学生需求。
     请根据以下步骤为教师生成一份详细的教学设计方案,确保教学设计清晰、全面，符合教学目标，并且能够激发学生兴趣，提高课堂参与度。
-    
+
     输出格式要求：
     1. 使用markdown格式
     2. 标题层级说明：
@@ -15,7 +16,7 @@ teaching_design_prompt = PromptTemplate(
        - 使用(1)、(2)等形式编号的子标题使用两个"#"号
        - 最下层的标题(如标题'9.小组讨论与互动'内容中的"环节内容"、"目的与作用"等)使用三个"#"号
     3. 不要包含任何XML标签
-    
+
     # 1.学科名称：{subject}
     # 2.课程主题：{topic}
     # 3.教学目标：{goals}
@@ -154,5 +155,137 @@ answer_explanation_prompt = PromptTemplate(
 )
 
 
-def multimedia_prompt():
+def ppt_prompt():
     return None
+
+
+def image_prompt():
+    return None
+
+
+def video_prompt():
+    return None
+
+
+def create_online_test_template() -> str:
+    """
+    生成在线测试题目模板字符串
+    :return: 模板字符串
+    """
+    return """
+    请根据以下要求生成适合在线测试的题目。每道题必须包含题目内容、选项、正确答案、解析等信息，并按照指定的JSON格式输出。
+
+    学科：{subject}
+    主题：{topic}
+    难度：{degree}
+    考试时长：{time_limit}分钟
+    要求：
+    1. 题目类型及分值要求：
+    {test_requirements}
+
+    2. 输出格式必须是合法的JSON格式
+    3. 每道题的结构如下：
+    {{
+        "questions": [
+            {{
+                "number": "{question_number}",  // 题型序号(一/二/三/四/五)
+                "type": "{question_type}",  // 题目类型(choice/fill/judge/short_answer/application)
+                "score": {question_score},
+                "id": "题目ID(自增数字)",
+                "content": "题目内容",
+                "options": [  // 选择题选项，判断题固定为["√","×"]
+                    {{
+                        "key": "选项标识(A/B/C/D)",
+                        "value": "选项内容"
+                    }}
+                ],
+                "correct_answer": "正确答案的选项标识",  // 选择题为选项标识，填空题为答案文本
+                "explanation": "答案解析",
+                "knowledge_points": ["相关知识点1", "相关知识点2"],  // 知识点标签
+                "subject": "{subject}",
+                "topic": "{topic}",
+                "degree": "{degree}"
+            }}
+        ],
+        "test_info": {{
+            "total_score": {total_score},  // 试卷总分
+            "time_limit": {time_limit}  // 考试时长(分钟)
+        }}
+    }}
+    """
+
+
+# 在线测试题目生成的模板
+online_test_prompt = PromptTemplate(
+    input_variables=[
+        "subject", "topic", "degree", "time_limit",  # 基本信息
+        "test_requirements",  # 题型要求文本
+        "question_number", "question_type", "question_score",  # 题目信息
+        "total_score"  # 试卷总分
+    ],
+    template=create_online_test_template()
+)
+
+
+def generate_test_requirements(test_config: Dict) -> Dict[str, Any]:
+    """
+    生成题型要求文本和相关数据
+    :param test_config: {
+        'subject': '学科名称',
+        'topic': '课程主题',
+        'degree': '难度(easy/medium/hard)',
+        'time_limit': 考试时长(分钟),
+        'questions': {
+            'choice': {'count': 数量, 'score': 分值},
+            'fill': {'count': 数量, 'score': 分值},
+            ...
+        }
+    }
+    :return: 模板所需的输入数据
+    """
+    input_data = {
+        'subject': test_config['subject'],
+        'topic': test_config['topic'],
+        'degree': test_config['degree'],
+        'time_limit': test_config['time_limit']
+    }
+    requirements = []
+    
+    # 题型中英文映射
+    question_types = {
+        'choice': '选择题',
+        'fill': '填空题', 
+        'judge': '判断题',
+        'short_answer': '简答题',
+        'application': '应用计算题'
+    }
+    
+    # 汉字数字映射
+    chinese_numbers = ['一', '二', '三', '四', '五']
+    
+    total_score = 0
+    section_index = 0  # 用于动态分配题号
+    
+    # 遍历用户配置的题型（保持题型顺序）
+    for q_type, q_config in test_config['questions'].items():
+        if q_type in question_types:  # 确保是支持的题型
+            name = question_types[q_type]
+            total = q_config['count'] * q_config['score']
+            requirements.append(
+                f"   - {name}：每题{q_config['score']}分，共{q_config['count']}题，总计{total}分"
+            )
+            
+            input_data.update({
+                'question_number': chinese_numbers[section_index],  # 动态分配题号
+                'question_type': question_types[q_type],  # 使用中文题型名称
+                'question_score': q_config['score']
+            })
+            total_score += total
+            section_index += 1
+    
+    input_data.update({
+        'test_requirements': '\n'.join(requirements),
+        'total_score': total_score
+    })
+    
+    return input_data
