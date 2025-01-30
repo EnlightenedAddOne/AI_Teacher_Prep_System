@@ -14,6 +14,24 @@ def update_question_content(session, question_id, new_content):
     return True
 
 
+def delete_exam(session, exam_id):
+    """安全删除试卷（级联删除关联题目关系）"""
+    try:
+        # 先手动删除关联关系（双保险）
+        session.query(ExamQuestion).filter_by(exam_id=exam_id).delete()
+
+        exam = session.query(Exam).get(exam_id)
+        if exam:
+            session.delete(exam)
+            session.commit()
+            print(f"试卷 {exam_id} 删除成功")
+            return True
+        return False
+    except Exception as e:
+        session.rollback()
+        print(f"删除失败：{str(e)}")
+        return False
+
 def adjust_exam_question(session, exam_id, question_id, new_score=None, new_order=None):
     """调整试卷中的题目"""
     eq = session.query(ExamQuestion).filter_by(exam_id=exam_id, question_id=question_id).first()
@@ -33,25 +51,20 @@ def adjust_exam_question(session, exam_id, question_id, new_score=None, new_orde
 
 
 def delete_question(session, question_id):
-    """删除题目（自动处理关联关系）"""
-    question = session.query(Question).get(question_id)
-    if not question:
-        print("题目不存在")
-        return False
-
-    # 检查是否被试卷引用
-    if len(question.exam_links) > 0:
-        print("该题目已被试卷使用，无法删除")
-        return False
-
+    """安全删除题目（级联删除所有关联）"""
     try:
-        # 删除关联选项和知识点
+        # 先删除所有关联关系
+        session.query(ExamQuestion).filter_by(question_id=question_id).delete()
         session.query(QuestionOption).filter_by(question_id=question_id).delete()
         session.query(QuestionPoint).filter_by(question_id=question_id).delete()
-        session.delete(question)
-        session.commit()
-        print("题目删除成功")
-        return True
+
+        question = session.query(Question).get(question_id)
+        if question:
+            session.delete(question)
+            session.commit()
+            print(f"题目 {question_id} 删除成功")
+            return True
+        return False
     except Exception as e:
         session.rollback()
         print(f"删除失败：{str(e)}")

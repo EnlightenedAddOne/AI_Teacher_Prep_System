@@ -58,8 +58,8 @@ class ExamQuestion(Base):
     """试卷-题目关系表"""
     __tablename__ = 'exam_questions'
     eq_id = Column(Integer, primary_key=True)
-    exam_id = Column(Integer, ForeignKey('exams.exam_id'), nullable=False)
-    question_id = Column(Integer, ForeignKey('questions.question_id'), nullable=False)
+    exam_id = Column(Integer, ForeignKey('exams.exam_id',ondelete='CASCADE'), nullable=False)
+    question_id = Column(Integer, ForeignKey('questions.question_id',ondelete='CASCADE'), nullable=False)
     display_number = Column(String(20))  # 显示编号如"一、"
     assigned_score = Column(Float, nullable=False)  # 本题分值
     sort_order = Column(Integer, default=0)  # 排序序号
@@ -67,6 +67,7 @@ class ExamQuestion(Base):
     # 关系定义
     exam = relationship("Exam", back_populates="exam_questions")
     question = relationship("Question", back_populates="exam_links")
+
 
 
 class QuestionOption(Base):
@@ -99,6 +100,7 @@ class QuestionPoint(Base):
     qp_id = Column(Integer, primary_key=True)
     question_id = Column(Integer, ForeignKey('questions.question_id'), nullable=False)
     point_id = Column(Integer, ForeignKey('knowledge_graph.point_id'), nullable=False)
+
 
 # 创建所有表（仅首次运行需要）
 Base.metadata.create_all(engine)

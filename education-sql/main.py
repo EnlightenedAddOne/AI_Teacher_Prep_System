@@ -362,6 +362,8 @@ test_questions = '''
 def main():
     session = Session()
 
+    # delete_question(session, 1)
+    delete_question(session, 1)
     # 存入数据库后测试打印
     exported = export_exam_to_json(session, 1)
     print(type(exported))
