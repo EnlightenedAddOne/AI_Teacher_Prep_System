@@ -1,14 +1,15 @@
 # 处理PDF生成逻辑
+import os
+import re
+
+from fastapi import HTTPException
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch, mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-from reportlab.lib.units import inch, mm
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import Paragraph, Frame, KeepInFrame
-import re
-import os
-from fastapi import HTTPException
+from reportlab.platypus import Paragraph, Frame
 
 
 def register_font(font_name, font_path):

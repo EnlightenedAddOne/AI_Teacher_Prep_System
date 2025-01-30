@@ -1,6 +1,6 @@
 # 教学设计模块
 from llm_integration import LLMFactory
-from utils.prompts import teaching_design_prompt
+from utils import teaching_design_prompt
 
 
 def generate_teaching_design(subject, topic, goals, duration, grade, api_key):

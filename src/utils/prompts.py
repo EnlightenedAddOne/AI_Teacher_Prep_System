@@ -1,6 +1,5 @@
 # Prompt模板定义
 from langchain.prompts import PromptTemplate
-from typing import Dict, Tuple, Any
 
 # 教学设计的LangChain Prompt模板
 teaching_design_prompt = PromptTemplate(
@@ -64,57 +63,6 @@ teaching_design_prompt = PromptTemplate(
 
 
 # 练习题生成的LangChain Prompt模板
-def create_dynamic_template(exercise_config):
-    # 动态生成输入数据和模板
-    input_data = {}
-    template_parts = []
-    chinese_numbers = ["一", "二", "三", "四", "五"]  # 汉字编号
-    section_index = 0  # 用于选择汉字编号
-
-    if "choice_count" in exercise_config:
-        input_data["choice_total"] = exercise_config["choice_score"] * exercise_config["choice_count"]
-        template_parts.append(f"""
-        {chinese_numbers[section_index]}、选择题（每小题{exercise_config["choice_score"]}分，共{exercise_config["choice_count"]}题，总计{input_data["choice_total"]}分）
-        {{生成选择题内容}}
-        """)
-        section_index += 1
-
-    if "fill_count" in exercise_config:
-        input_data["fill_total"] = exercise_config["fill_score"] * exercise_config["fill_count"]
-        template_parts.append(f"""
-        {chinese_numbers[section_index]}、填空题（每小题{exercise_config["fill_score"]}分，共{exercise_config["fill_count"]}题，总计{input_data["fill_total"]}分）
-        {{生成填空题内容}}
-        """)
-        section_index += 1
-
-    if "judge_count" in exercise_config:
-        input_data["judge_total"] = exercise_config["judge_score"] * exercise_config["judge_count"]
-        template_parts.append(f"""
-        {chinese_numbers[section_index]}、判断题（每小题{exercise_config["judge_score"]}分，共{exercise_config["judge_count"]}题，总计{input_data["judge_total"]}分）
-        {{生成判断题内容}}
-        """)
-        section_index += 1
-
-    if "short_answer_count" in exercise_config:
-        input_data["short_answer_total"] = exercise_config["short_answer_score"] * exercise_config["short_answer_count"]
-        template_parts.append(f"""
-        {chinese_numbers[section_index]}、简答题（每小题{exercise_config["short_answer_score"]}分，共{exercise_config["short_answer_count"]}题，总计{input_data["short_answer_total"]}分）
-        {{生成简答题内容}}
-        """)
-        section_index += 1
-
-    if "application_count" in exercise_config:
-        input_data["application_total"] = exercise_config["application_score"] * exercise_config["application_count"]
-        template_parts.append(f"""
-        {chinese_numbers[section_index]}、应用计算题（每小题{exercise_config["application_score"]}分，共{exercise_config["application_count"]}题，总计{input_data["application_total"]}分）
-        {{生成应用计算题内容}}
-        """)
-
-    # 合并模板
-    template = "\n".join(template_parts)
-    return template, input_data
-
-
 exercise_prompt = PromptTemplate(
     input_variables=[
         "subject", "topic", "degree",
@@ -167,6 +115,7 @@ def video_prompt():
     return None
 
 
+# 在线测试题目生成的LangChain Prompt模板
 def create_online_test_template() -> str:
     """
     生成在线测试题目模板字符串
@@ -207,15 +156,16 @@ def create_online_test_template() -> str:
                 "degree": "{degree}"
             }}
         ],
-        "test_info": {{
-            "total_score": {total_score},  // 试卷总分
-            "time_limit": {time_limit}  // 考试时长(分钟)
-        }}
+        "test_info": [
+            {{
+                "total_score": {total_score},  // 试卷总分
+                "time_limit": {time_limit}  // 考试时长(分钟)
+            }}
+        ]
     }}
     """
 
 
-# 在线测试题目生成的模板
 online_test_prompt = PromptTemplate(
     input_variables=[
         "subject", "topic", "degree", "time_limit",  # 基本信息
@@ -226,66 +176,3 @@ online_test_prompt = PromptTemplate(
     template=create_online_test_template()
 )
 
-
-def generate_test_requirements(test_config: Dict) -> Dict[str, Any]:
-    """
-    生成题型要求文本和相关数据
-    :param test_config: {
-        'subject': '学科名称',
-        'topic': '课程主题',
-        'degree': '难度(easy/medium/hard)',
-        'time_limit': 考试时长(分钟),
-        'questions': {
-            'choice': {'count': 数量, 'score': 分值},
-            'fill': {'count': 数量, 'score': 分值},
-            ...
-        }
-    }
-    :return: 模板所需的输入数据
-    """
-    input_data = {
-        'subject': test_config['subject'],
-        'topic': test_config['topic'],
-        'degree': test_config['degree'],
-        'time_limit': test_config['time_limit']
-    }
-    requirements = []
-    
-    # 题型中英文映射
-    question_types = {
-        'choice': '选择题',
-        'fill': '填空题', 
-        'judge': '判断题',
-        'short_answer': '简答题',
-        'application': '应用计算题'
-    }
-    
-    # 汉字数字映射
-    chinese_numbers = ['一', '二', '三', '四', '五']
-    
-    total_score = 0
-    section_index = 0  # 用于动态分配题号
-    
-    # 遍历用户配置的题型（保持题型顺序）
-    for q_type, q_config in test_config['questions'].items():
-        if q_type in question_types:  # 确保是支持的题型
-            name = question_types[q_type]
-            total = q_config['count'] * q_config['score']
-            requirements.append(
-                f"   - {name}：每题{q_config['score']}分，共{q_config['count']}题，总计{total}分"
-            )
-            
-            input_data.update({
-                'question_number': chinese_numbers[section_index],  # 动态分配题号
-                'question_type': question_types[q_type],  # 使用中文题型名称
-                'question_score': q_config['score']
-            })
-            total_score += total
-            section_index += 1
-    
-    input_data.update({
-        'test_requirements': '\n'.join(requirements),
-        'total_score': total_score
-    })
-    
-    return input_data

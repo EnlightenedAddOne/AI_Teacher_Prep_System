@@ -1,8 +1,10 @@
 # 测试文件
+import json
+
 from teaching_design import generate_teaching_design
 from exercise_generation import generate_exercises
 from student_analysis import analyze_student_performance
-from config import config
+from configs import config  # 修改导入路径
 from Online_Test import generate_online_test
 
 
@@ -22,11 +24,18 @@ def test_online_test():
         }
     }
 
-    api_key = config['api_keys']['tongyi_api_key']
+    api_key = config['api_keys'].get('tongyi_api_key')
+    if not api_key:
+        print("错误: 未找到通义千问API密钥")
+        return None
 
     try:
         test_questions = generate_online_test(test_config, api_key)
-        return test_questions
+        if test_questions:
+            return test_questions
+        else:
+            print("生成测试题目失败: 返回结果为空")
+            return None
     except Exception as e:
         print(f"生成在线测试题目时出错: {str(e)}")
         return None
@@ -34,7 +43,7 @@ def test_online_test():
 
 def main():
     """
-    api_key = config['api_keys']['tongyi_api_key']
+    api_key = config['api_keys'].get('tongyi_api_key')
     
     # 测试教学设计生成
     teaching_design = generate_teaching_design(
@@ -81,6 +90,8 @@ def main():
 
     print("\n=== 在线测试题目 ===")
     print(test_questions)
+    data = json.loads(test_questions)
+    print("解析成功:", data)
 
 
 if __name__ == "__main__":
