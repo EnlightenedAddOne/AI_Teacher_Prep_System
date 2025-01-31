@@ -25,7 +25,6 @@ def export_exam_to_json(session, exam_id):
         # 处理所有题目
         for eq in exam_questions:
             question = eq.question
-            subject = question.subject
 
             # 转换题型到原始中文格式
             question_type = reverse_convert_type(question.question_type)
@@ -35,11 +34,11 @@ def export_exam_to_json(session, exam_id):
                 "number": eq.display_number,
                 "type": question_type,
                 "score": float(eq.assigned_score),
-                "id": eq.eq_id,  # 使用试卷题目关系ID作为临时标识
+                "id": question.question_id,  # 使用题目ID作为标识
                 "content": question.content,
                 "explanation": question.explanation,
                 "knowledge_points": [p.point_name for p in question.knowledge_points],
-                "subject": subject.subject_name,
+                "subject": question.subject.subject_name,
                 "topic": question.topic,
                 "degree": reverse_convert_difficulty(question.difficulty)
             }
@@ -83,6 +82,7 @@ def export_exam_to_json(session, exam_id):
     except Exception as e:
         print(f"导出失败：{str(e)}")
         return None
+
 
 
 def reverse_convert_type(db_type):

@@ -49,10 +49,14 @@ class Question(Base):
 
     # 关系定义
     subject = relationship("Subject", back_populates="questions")
-    options = relationship("QuestionOption", back_populates="question")
+    # options = relationship("QuestionOption", back_populates="question")
     exam_links = relationship("ExamQuestion", back_populates="question")
-    knowledge_points = relationship("KnowledgePoint", secondary="question_points")
+    # knowledge_points = relationship("KnowledgePoint", secondary="question_points")
     original_type = Column(String(20))  # 存储原始题型名称（如"选择题"
+
+    options = relationship('QuestionOption', back_populates='question', cascade='all, delete-orphan')
+    knowledge_points = relationship('KnowledgePoint', back_populates='question', cascade='all, delete-orphan')
+
 
 class ExamQuestion(Base):
     """试卷-题目关系表"""
@@ -87,19 +91,21 @@ class QuestionOption(Base):
 class KnowledgePoint(Base):
     """知识点表"""
     __tablename__ = 'knowledge_graph'
-    point_id = Column(Integer, primary_key=True)
+    point_id = Column(Integer, primary_key=True, autoincrement=True)
+    question_id = Column(Integer, ForeignKey('questions.question_id'), nullable=False)  # 添加外键关联到题目
     point_name = Column(String(100), nullable=False)
     subject_id = Column(Integer, ForeignKey('subjects.subject_id'), nullable=False)
     parent_point = Column(Integer, default=0)
     level = Column(Integer, default=1)
+    # 关系定义
+    question = relationship("Question", back_populates="knowledge_points")
 
-
-class QuestionPoint(Base):
-    """题目-知识点关联表"""
-    __tablename__ = 'question_points'
-    qp_id = Column(Integer, primary_key=True)
-    question_id = Column(Integer, ForeignKey('questions.question_id'), nullable=False)
-    point_id = Column(Integer, ForeignKey('knowledge_graph.point_id'), nullable=False)
+# class QuestionPoint(Base):
+#     """题目-知识点关联表"""
+#     __tablename__ = 'question_points'
+#     qp_id = Column(Integer, primary_key=True)
+#     question_id = Column(Integer, ForeignKey('questions.question_id'), nullable=False)
+#     point_id = Column(Integer, ForeignKey('knowledge_graph.point_id'), nullable=False)
 
 
 # 创建所有表（仅首次运行需要）

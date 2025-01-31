@@ -1,7 +1,7 @@
 from Create import *
 
 
-def import_exam_paper(session, json_data):
+def import_exam_paper(session, json_data, exam_name:str):
     """完整试卷导入函数"""
     try:
         # 1. 处理学科信息
@@ -14,7 +14,7 @@ def import_exam_paper(session, json_data):
 
         # 2. 创建试卷记录
         exam = Exam(
-            exam_name=json_data.get("exam_name", "未命名试卷"),
+            exam_name=json_data.get("exam_name", f"{exam_name}"),
             subject_id=subject.subject_id,
             subject_name=subject_name,
             total_score=json_data["test_info"]["total_score"],
@@ -24,7 +24,6 @@ def import_exam_paper(session, json_data):
         session.flush()
 
         # 3. 处理所有题目
-        question_number_map = {}  # 记录题号对应关系
         for order, q in enumerate(json_data["questions"], start=1):
             # 3.1 转换题型
             question_type = convert_question_type(q["type"])
@@ -58,17 +57,11 @@ def import_exam_paper(session, json_data):
 
             # 3.4 处理知识点
             for point_name in q["knowledge_points"]:
-                point = session.query(KnowledgePoint).filter_by(
+                new_point = KnowledgePoint(
                     point_name=point_name,
                     subject_id=subject.subject_id
-                ).first()
-                if not point:
-                    point = KnowledgePoint(
-                        point_name=point_name,
-                        subject_id=subject.subject_id
-                    )
-                    session.add(point)
-                new_question.knowledge_points.append(point)
+                )
+                new_question.knowledge_points.append(new_point)
 
             session.add(new_question)
             session.flush()  # 立即获取question_id
@@ -82,12 +75,6 @@ def import_exam_paper(session, json_data):
                 sort_order=order
             )
             session.add(exam_question)
-
-            # 记录题号映射
-            question_number_map[q["id"]] = new_question.question_id
-
-        # 4. 处理题目之间的关联（如有）
-        # 可以在此处理题目之间的关联关系
 
         session.commit()
         print(f"试卷导入成功！试卷ID：{exam.exam_id}")
@@ -120,7 +107,7 @@ def convert_difficulty(degree):
     return difficulty_map.get(degree, 0.5)
 
 def verify_exam_import(session, exam_id):
-    """验证试卷导入结果"""
+    """验证试卷导入结果,也可查看试卷简要信息"""
     exam = session.query(Exam).get(exam_id)
     if not exam:
         print("试卷不存在")
@@ -136,8 +123,7 @@ def verify_exam_import(session, exam_id):
 
     # 检查知识点覆盖率
     points = session.query(KnowledgePoint.point_name) \
-        .join(QuestionPoint) \
-        .join(Question) \
+        .join(Question, KnowledgePoint.question_id == Question.question_id) \
         .filter(Question.subject_id == exam.subject_id) \
         .distinct().all()
     print(f"涉及知识点：{[p[0] for p in points]}")
@@ -159,6 +145,19 @@ def verify_exam_import(session, exam_id):
     # 检查分值总和
     total_score = sum([eq.assigned_score for eq in exam.exam_questions])
     print(f"试卷总分：{total_score}（配置总分：{exam.total_score}）")
+
+    # 额外检查：试卷总分是否与配置总分匹配
+    if total_score == exam.total_score:
+        print("试卷总分与配置总分匹配")
+    else:
+        print("试卷总分与配置总分不匹配，请检查题目分值分配")
+        if input("是否自动更改试卷分值（Y/N）：") == "Y" or "y":
+            exam.total_score=total_score
+            session.commit()
+            print(f"修改成功------试卷总分：{total_score}（配置总分：{exam.total_score}）")
+        else:
+            print("请检查数据库")
+
 
 # def create_subject(session, name, parent_id=0):
 #     """创建学科"""

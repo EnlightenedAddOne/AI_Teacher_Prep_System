@@ -1,6 +1,7 @@
 from write_data import *
 from read import *
 from updatedelete import *
+import json
 
 test_questions = '''
     {
@@ -363,19 +364,24 @@ def main():
     session = Session()
 
     # delete_question(session, 1)
-    delete_question(session, 1)
+    # delete_question(session,2)
+    # delete_exam_with_others(session,1)
+
     # 存入数据库后测试打印
     exported = export_exam_to_json(session, 1)
     print(type(exported))
     print(exported)
+    verify_exam_import(session,1)
 
     # # 将JSON字符串转换为Python字典
     # data_dict = json.loads(test_questions)
     # # 执行导入
-    # exam_id = import_exam_paper(session, data_dict)
+    # exam_id = import_exam_paper(session, data_dict,'测试试卷')
     #
-    # # # 导出试卷（假设已知试卷ID为1）
-    # # exam_data = export_exam_to_json(session, 1)
+    # # 导出试卷（假设已知试卷ID为1）
+    # exam_data = export_exam_to_json(session, exam_id)
+    # print(exam_data)
+
     #
     # if exam_id:
     #     # 验证导入结果
