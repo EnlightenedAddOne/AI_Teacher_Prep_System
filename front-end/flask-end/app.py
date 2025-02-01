@@ -1,12 +1,9 @@
 from flask import Flask, request, jsonify
-
-
 from flask_cors import CORS
-
 from todo_sql.sql_function import ToDo, write_data, Session, turn_state, delete_task_by_id
 
 
-session = Session()
+session = Session() # 获取数据库链接
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)  # 解决跨域问题
@@ -24,6 +21,7 @@ def todo_view():
 
 @app.route('/todo/<int:_id>', methods=["PUT", "DELETE"])
 def todo_item(_id):
+    '''增加任务'''
     if request.method == 'PUT':
         status=turn_state(session,_id)
         if status==True:
@@ -31,6 +29,7 @@ def todo_item(_id):
         else:
             return {'status': 'error'}
     if request.method == 'DELETE':
+        '''删除任务'''
         status=delete_task_by_id(session,_id)
         if status==True:
             return {'status': 'ok'}
