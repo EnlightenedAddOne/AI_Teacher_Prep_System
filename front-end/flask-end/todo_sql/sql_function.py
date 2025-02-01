@@ -36,6 +36,13 @@ def delete_task_by_id(session: Session, task_id: int):
     else:
         return False
 
+def clear_completed_tasks(session):
+    result = session.query(Todo_List).filter(Todo_List.done==True)
+    for task in result:
+        delete_task_by_id(session, task.id)
+
+
+
 class ToDo():
     # 当choice==1时输出已完成的任务，0：未完成的任务，其他数：所有任务
     def search_task(session: Session, choice: int):
@@ -79,15 +86,15 @@ class ToDo():
         return alltasks
 
 
-def test():
-    session = Session()
-    # write_data(session, "出门")
-    # write_data(session, "买菜做饭")
-    # write_data(session, "做饭")
-    # write_data(session, "出门做饭")
-
-    print(ToDo.all_tasks(session))
-
+# def test():
+#     session = Session()
+#     # write_data(session, "出门")
+#     # write_data(session, "买菜做饭")
+#     # write_data(session, "做饭")
+#     # write_data(session, "出门做饭")
+#     clear_completed_tasks(session)
+#
+#
 # if __name__ == '__main__':
 #
 #     test()

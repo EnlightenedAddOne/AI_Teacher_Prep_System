@@ -8,12 +8,21 @@
     });
 
     const undone_count = computed(() => {
-        return todos.length;
+    return todos.value.filter(todo => !todo.done).length;
     });
+
+    let currentStatus = ref('all'); // 默认为 'all'
+
+    // 切换状态并加载数据
+    const switchStatus = (status) => {
+        currentStatus.value = status;
+        fetchData();
+    };
 
     // 1. 请求服务器加载数据
     const fetchData = () => {
-        fetch('http://127.0.0.1:5000/todo').then(res => {
+    let url = `http://127.0.0.1:5000/todo?key=${currentStatus.value}`;
+        fetch(url).then(res => {
             return res.json();
         }).then((data) => {
             console.log(data);
@@ -21,6 +30,7 @@
             console.log(todos);
         });
     };
+
 
     // 2. 切换任务的完成状态
     const change_todo_status = (item) => {
@@ -41,7 +51,7 @@
     };
     // 3. 添加任务
     const add_todo = () => {
-        fetch('http://127.0.0.1:5000/todo', {
+        fetch('http://127.0.0.1:5000/add_todo', {
             method: 'POST',
             body: JSON.stringify(form),
             headers: {'Content-Type': 'application/json'},
@@ -63,6 +73,21 @@
         }).then((data) => {
             console.log(data);
             fetchData();
+        });
+    };
+
+    // 5. 清除已完成任务
+    const clearCompletedTodos = () => {
+        fetch(`http://127.0.0.1:5000/todo/clear_done`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        }).then((response) => {
+            return response.json();
+        }).then((data) => {
+            console.log(data);
+            fetchData(); // 刷新任务列表
         });
     };
 
@@ -113,13 +138,14 @@
                 <button type="button" class="btn text-decoration-none" disabled>{{ undone_count }}条剩余</button>
 
                 <div class="btn-group">
-                    <a href="/?key=all" class="btn btn-outline-primary {% if key=='all' %}active{% endif %}">全部</a>
-                    <a href="/?key=undone"
-                       class="btn btn-outline-primary {% if key=='undone' %}active{% endif %}">未完成</a>
-                    <a href="/?key=done" class="btn btn-outline-primary {% if key=='done' %}active{% endif %}">已完成</a>
+                    <a href="#" class="btn btn-outline-primary " :class="{ 'active': currentStatus === 'all' }" @click.prevent="switchStatus('all')">全部</a>
+                    <a href="#" class="btn btn-outline-primary" :class="{ 'active': currentStatus === 'undone' }" @click.prevent="switchStatus('undone')">未完成</a>
+                    <a href="#" class="btn btn-outline-primary " :class="{ 'active': currentStatus === 'done' }" @click.prevent="switchStatus('done')">已完成</a>
+
                 </div>
 
-                <a href="/clear_done?key=done" class="btn btn-link text-decoration-none">清除已完成</a>
+
+                <a href="#" class="btn btn-link text-decoration-none" @click.prevent="clearCompletedTodos">清除已完成</a>
             </div>
         </div>
     </div>
