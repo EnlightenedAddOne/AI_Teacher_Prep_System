@@ -1,7 +1,12 @@
-from flask import Flask, request, render_template, redirect, jsonify
+from flask import Flask, request, jsonify
 
-from models import todo
+
 from flask_cors import CORS
+
+from todo_sql.sql_function import ToDo, write_data, Session, turn_state, delete_task_by_id
+
+
+session = Session()
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)  # 解决跨域问题
@@ -10,32 +15,27 @@ CORS(app, supports_credentials=True)  # 解决跨域问题
 @app.route('/todo', methods=['GET', 'POST'])
 def todo_view():
     if request.method == 'GET':
-        return jsonify(todo.todo_list)
+        return jsonify(ToDo.all_tasks(session))
     if request.method == 'POST':
         title = request.json.get('title', None)
-        item = {
-            'id': todo.count,
-            'title': title,
-            'done': False
-        }
-        todo.todo_list.append(item)
+        write_data(session,title)
         return {'status': 'ok'}
 
 
 @app.route('/todo/<int:_id>', methods=["PUT", "DELETE"])
 def todo_item(_id):
     if request.method == 'PUT':
-        for item in todo.todo_list:
-            if item['id'] == _id:
-                item['done'] = not item['done']
-                return {'status': 'ok'}
-        return {'status': 'error'}
+        status=turn_state(session,_id)
+        if status==True:
+            return {'status': 'ok'}
+        else:
+            return {'status': 'error'}
     if request.method == 'DELETE':
-        for item in todo.todo_list:
-            if item['id'] == _id:
-                todo.todo_list.remove(item)
-                return {'status': 'ok'}
-        return {'status': 'error'}
+        status=delete_task_by_id(session,_id)
+        if status==True:
+            return {'status': 'ok'}
+        else:
+            return {'status': 'error'}
 
 
 if __name__ == '__main__':

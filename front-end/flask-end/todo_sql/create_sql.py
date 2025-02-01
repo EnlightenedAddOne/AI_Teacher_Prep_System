@@ -5,7 +5,7 @@ from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 # 初始化数据库连接:
 # front-end/sql/todo-sql.sql
 
-engine = create_engine('sqlite:///D:/PROJECT/Python/test01/front-end/sql/todo-sql.sql')
+engine = create_engine('sqlite:///D:/PROJECT/Python/test01/front-end/flask-end/todo_sql/todo-sql.sql')
 Session = sessionmaker(bind=engine)
 Base = declarative_base()
 
