@@ -36,15 +36,7 @@ const handleLogout = async () => {
       <IEpExpand v-show="isCollapse" />
       <IEpFold v-show="!isCollapse" />
     </el-icon>
-    <!--面包屑-->
-    <el-breadcrumb separator="/">
-      <el-breadcrumb-item :to="{ path: '/' }">homepage</el-breadcrumb-item>
-      <el-breadcrumb-item>
-        <a href="/">promotion management</a>
-      </el-breadcrumb-item>
-      <el-breadcrumb-item>promotion list</el-breadcrumb-item>
-      <el-breadcrumb-item>promotion detail</el-breadcrumb-item>
-    </el-breadcrumb>
+
     <!--下拉菜单-->
     <el-dropdown>
       <span class="el-dropdown-link">
@@ -70,7 +62,8 @@ const handleLogout = async () => {
 .el-header {
   display: flex;
   align-items: center;
-  background-color: #d8d8d8;
+  background-color: #bcc3c3;
+  opacity: 0.6;
 }
 
 .el-header .el-icon {

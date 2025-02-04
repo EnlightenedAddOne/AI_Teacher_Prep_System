@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { isCollapse } from './IsCollapse'
+import { ref } from 'vue';
+import { isCollapse } from './IsCollapse';
 </script>
 
 <template>
-  <!--侧边栏-->
   <el-aside>
-    <!--菜单-->
     <el-menu router unique-opened :collapse="isCollapse">
       <a href="/" class="logo">
         <h1>AI辅助教师备课系统</h1>
@@ -51,18 +49,20 @@ import { isCollapse } from './IsCollapse'
   </el-aside>
 </template>
 
-
 <style lang="scss" scoped>
 .el-aside {
-  background-color: #70c3c3;
+  background-color: #2c3e50; /* 深蓝色背景 */
   height: 100vh;
   width: auto;
+  color: #fff; /* 白色文字 */
+  transition: width 0.3s ease;
 }
+
 .logo {
   display: flex;
   justify-content: center;
   text-decoration: none;
-  color: black;
+  color: #fff; /* 白色文字 */
   height: 60px;
   align-items: center;
   img {
@@ -70,18 +70,21 @@ import { isCollapse } from './IsCollapse'
     height: 32px;
   }
 }
+
 .el-menu {
-  background-color: #70c3c3;
+  background-color: #2c3e50; /* 深蓝色背景 */
   border-right: none;
   width: 250px;
+  transition: width 0.3s ease;
+
   &.el-menu--collapse {
-    background-color: #70c3c3;
     width: 60px;
-    & h1 {
+    h1 {
       display: none;
     }
   }
 }
+
 .el-menu-item {
   display: flex;
   justify-content: flex-start;
@@ -89,6 +92,10 @@ import { isCollapse } from './IsCollapse'
   height: 60px;
   padding: 0 20px;
   gap: 10px;
+  color: #fff; /* 白色文字 */
+  &:hover {
+    background-color: #42b983; /* 悬停时浅蓝色背景 */
+  }
 }
 
 .icon-text-wrapper {
