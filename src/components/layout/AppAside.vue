@@ -11,12 +11,13 @@ import { isCollapse } from './IsCollapse'
       <a href="/" class="logo">
         <h1>AI辅助教师备课系统</h1>
       </a>
+
       <el-menu-item index="/TeachingAuto">
         <div class="icon-text-wrapper">
           <el-icon>
             <IEpSetting />
           </el-icon>
-          <span>教学自动化生成</span>
+          <span>智能备课助手</span>
         </div>
       </el-menu-item>
 
@@ -29,12 +30,21 @@ import { isCollapse } from './IsCollapse'
         </div>
       </el-menu-item>
 
+      <el-menu-item index="/Test">
+        <div class="icon-text-wrapper">
+          <el-icon>
+            <IEpSetting />
+          </el-icon>
+          <span>智能习题生成器</span>
+        </div>
+      </el-menu-item>
+
       <el-menu-item index="/StudentAnalysis">
         <div class="icon-text-wrapper">
           <el-icon>
             <IEpSetting />
           </el-icon>
-          <span>学情分析</span>
+          <span>智能学情分析</span>
         </div>
       </el-menu-item>
     </el-menu>

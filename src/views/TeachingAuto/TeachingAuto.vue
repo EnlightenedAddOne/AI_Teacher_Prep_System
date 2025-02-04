@@ -10,23 +10,11 @@ const formInline = reactive({
   type: [], // 第一组复选框的选中值（生成资源类型）
   mediaType: [], // 第二组复选框的选中值（多媒体资源生成选择）
   desc: '', // 附加要求
-  multipleChoiceCount: '0', // 选择题题数，默认值为0
-  multipleChoiceScore: '0', // 选择题分值，默认值为0
-  fillInTheBlankCount: '0', // 填空题题数，默认值为0
-  fillInTheBlankScore: '0', // 填空题分值，默认值为0
-  trueFalseCount: '0', // 判断题题数，默认值为0
-  trueFalseScore: '0', // 判断题分值，默认值为0
-  problemSolvingCount: '0', // 解答题题数，默认值为0
-  problemSolvingScore: '0', // 解答题分值，默认值为0
-  practiceCount: '0', // 练习题题数，默认值为0
-  practiceScore: '0', // 练习题分值，默认值为0
-  totalScore: '0' // 总分，默认值为0
 })
 
 const resourceTypes = [
   { label: '教案', value: '教案' },
-  { label: '多媒体材料', value: '多媒体材料' },
-  { label: '练习题', value: '练习题' }
+  { label: '多媒体材料', value: '多媒体材料' }
 ]
 
 const mediaTypes = [
@@ -35,38 +23,6 @@ const mediaTypes = [
   { label: 'PPT', value: 'PPT' }
 ]
 
-// 计算总分
-const calculateTotalScore = computed(() => {
-  const mcScore =
-    parseInt(formInline.multipleChoiceCount) * parseInt(formInline.multipleChoiceScore)
-  const fibScore =
-    parseInt(formInline.fillInTheBlankCount) * parseInt(formInline.fillInTheBlankScore)
-  const tfScore = parseInt(formInline.trueFalseCount) * parseInt(formInline.trueFalseScore)
-  const psScore =
-    parseInt(formInline.problemSolvingCount) * parseInt(formInline.problemSolvingScore)
-  const practiceScore = parseInt(formInline.practiceCount) * parseInt(formInline.practiceScore)
-
-  return mcScore + fibScore + tfScore + psScore + practiceScore
-})
-
-// 监听相关字段的变化，自动更新总分
-watch(
-  [
-    formInline.multipleChoiceCount,
-    formInline.multipleChoiceScore,
-    formInline.fillInTheBlankCount,
-    formInline.fillInTheBlankScore,
-    formInline.trueFalseCount,
-    formInline.trueFalseScore,
-    formInline.problemSolvingCount,
-    formInline.problemSolvingScore,
-    formInline.practiceCount,
-    formInline.practiceScore
-  ],
-  () => {
-    formInline.totalScore = calculateTotalScore.value.toString()
-  }
-)
 </script>
 
 <template>
@@ -114,81 +70,7 @@ watch(
                   ></el-checkbox>
                 </el-checkbox-group>
               </el-form-item>
-              <el-row :gutter="20" v-if="item.value === '练习题'">
-                <el-col :span="12">
-                  <el-form-item label="选择题题数">
-                    <el-input
-                      v-model="formInline.multipleChoiceCount"
-                      placeholder="选择题题数"
-                      clearable
-                    />
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="选择题分值">
-                    <el-input
-                      v-model="formInline.multipleChoiceScore"
-                      placeholder="选择题分值"
-                      clearable
-                    />
-                  </el-form-item>
-                </el-col>
-              </el-row>
-              <el-row :gutter="20" v-if="item.value === '练习题'">
-                <el-col :span="12">
-                  <el-form-item label="填空题题数">
-                    <el-input
-                      v-model="formInline.fillInTheBlankCount"
-                      placeholder="填空题题数"
-                      clearable
-                    />
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="填空题分值">
-                    <el-input
-                      v-model="formInline.fillInTheBlankScore"
-                      placeholder="填空题分值"
-                      clearable
-                    />
-                  </el-form-item>
-                </el-col>
-              </el-row>
-              <el-row :gutter="20" v-if="item.value === '练习题'">
-                <el-col :span="12">
-                  <el-form-item label="判断题题数">
-                    <el-input v-model="formInline.trueFalseCount" placeholder="判断题题数" clearable />
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="判断题分值">
-                    <el-input v-model="formInline.trueFalseScore" placeholder="判断题分值" clearable />
-                  </el-form-item>
-                </el-col>
-              </el-row>
-              <el-row :gutter="20" v-if="item.value === '练习题'">
-                <el-col :span="12">
-                  <el-form-item label="解答题题数">
-                    <el-input
-                      v-model="formInline.problemSolvingCount"
-                      placeholder="解答题题数"
-                      clearable
-                    />
-                  </el-form-item>
-                </el-col>
-                <el-col :span="12">
-                  <el-form-item label="解答题分值">
-                    <el-input
-                      v-model="formInline.problemSolvingScore"
-                      placeholder="解答题分值"
-                      clearable
-                    />
-                  </el-form-item>
-                </el-col>
-              </el-row>
-              <el-form-item v-if="item.value === '练习题'" label="总分">
-                <el-input v-model="formInline.totalScore" placeholder="总分" clearable disabled />
-              </el-form-item>
+
             </div>
           </div>
         </el-checkbox-group>

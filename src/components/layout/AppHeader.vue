@@ -5,6 +5,10 @@ import { LoginInfo, logout } from '@/api/users'
 import { useRouter } from 'vue-router'
 const router = useRouter()
 
+const toself = async () => {
+  router.push('/Self');
+}
+
 //退出事件处理
 const handleLogout = async () => {
   //1.询问用户确认退出
@@ -54,7 +58,7 @@ const handleLogout = async () => {
       </span>
       <template #dropdown>
         <el-dropdown-menu>
-          <el-dropdown-item>个人中心</el-dropdown-item>
+          <el-dropdown-item @click="toself">个人中心</el-dropdown-item>
           <el-dropdown-item divided @click="handleLogout">退出登录</el-dropdown-item>
         </el-dropdown-menu>
       </template>

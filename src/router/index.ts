@@ -31,10 +31,20 @@ const router = createRouter({
           component: () => import('@/views/Record/Record.vue')
         },
         {
+          path: '/Test',
+          name: 'Test',
+          component: () => import('@/views/Test/Test.vue')
+        },
+        {
           path: '/StudentAnalysis',
           name: 'StudentAnalysis',
           component: () => import('@/views/StudentAnalysis/StudentAnalysis.vue')
         },
+        {
+          path: '/Self',
+          name: 'Self',
+          component: () => import('@/views/Self/Self.vue')
+        }
       ]
     }
   ]
