@@ -61,7 +61,6 @@ teaching_design_prompt = PromptTemplate(
     """
 )
 
-
 # 练习题生成的LangChain Prompt模板
 exercise_prompt = PromptTemplate(
     input_variables=[
@@ -103,12 +102,81 @@ answer_explanation_prompt = PromptTemplate(
 )
 
 
-def ppt_prompt():
-    return None
+def pptx_prompt() -> str:
+    """PPT生成提示词模板"""
+    return '''你是一位PPT设计专家。请根据以下教学设计内容生成PPT结构和配音文案。要求如下：
+1. 生成一个包含封面和多个章节的PPT结构
+2. 每个章节包含标题、要点和讲解文案
+3. 确保内容逻辑清晰，适合教学使用
+4. 输出格式为JSON，包含以下字段：
+   - title: PPT标题
+   - title_narration: 封面讲解文案
+   - sections: 章节列表，每个章节包含：
+     - title: 章节标题
+     - points: 章节要点列表
+     - narration: 章节讲解文案
+
+示例格式：
+{
+    "title": "PPT标题",
+    "title_narration": "封面讲解文案",
+    "sections": [
+        {
+            "title": "章节标题1",
+            "points": ["要点1", "要点2"],
+            "narration": "章节讲解文案1"
+        },
+        {
+            "title": "章节标题2",
+            "points": ["要点1", "要点2"],
+            "narration": "章节讲解文案2"
+        }
+    ]
+}
+
+教学设计内容：
+{content}'''
 
 
-def image_prompt():
-    return None
+ppt_prompt = PromptTemplate(
+    input_variables=["content"],
+    template=pptx_prompt()
+)
+
+
+def image_prompt() -> str:
+    """教学图片生成提示词模板"""
+    return """
+    你是一位专业的教学图片设计专家。请根据以下教学内容，生成一个详细的图片描述提示词，用于生成教学图片。
+
+    教学内容: {description}
+
+    要求：
+    1. 图片类型可以是：
+       - 流程图：展示步骤、过程或因果关系
+       - 结构图：展示概念之间的关系、层次或组成部分
+       - 实物图：展示具体物体、设备或现象
+       - 对比图：展示不同概念的异同
+       - 统计图：展示数据关系或变化趋势
+       
+    2. 图片要求：
+       - 清晰度：4K高清质量
+       - 风格：扁平化设计，简洁明快
+       - 配色：使用适合教育的柔和色调
+       - 布局：主次分明，重点突出
+       
+    3. 教学特点：
+       - 适合目标年级学生理解
+       - 突出教学重点和难点
+       - 便于教师讲解和学生理解
+       
+    请生成DALL-E图片生成提示词，确保包含以下要素：
+    - 图片类型说明
+    - 具体内容描述
+    - 视觉风格要求
+    - 布局和构图说明
+    - 教学用途说明
+    """
 
 
 def video_prompt():
@@ -175,4 +243,3 @@ online_test_prompt = PromptTemplate(
     ],
     template=create_online_test_template()
 )
-

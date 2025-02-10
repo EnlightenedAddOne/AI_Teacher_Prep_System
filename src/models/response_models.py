@@ -1,11 +1,21 @@
-from typing import List, Optional
+from typing import List, Optional, Dict, Union
+
 from pydantic import BaseModel
+
+
+class TeachingImage(BaseModel):
+    """教学图片信息"""
+    title: str
+    url: str
+    type: str
+    md5: str
 
 
 class TeachingDesignResponse(BaseModel):
     """教学设计响应"""
     content: str  # markdown格式的教学设计内容
     teach_pdf_url: str  # 教学设计PDF下载链接
+    images: Optional[List[TeachingImage]] = None  # 可选的教学图片列表
 
 
 class ExerciseResponse(BaseModel):
@@ -29,7 +39,7 @@ class Question(BaseModel):
     score: int  # 题目分值
     id: int  # 题目ID
     content: str  # 题目内容
-    options: Optional[List[QuestionOption]]  # 选项列表(选择题和判断题必填)
+    options: Optional[List[QuestionOption]] = None  # 选项列表(选择题和判断题必填)
     correct_answer: str  # 正确答案
     explanation: str  # 答案解析
     knowledge_points: List[str]  # 知识点标签
@@ -46,5 +56,6 @@ class TestInfo(BaseModel):
 
 class OnlineTestResponse(BaseModel):
     """在线测试响应"""
+    exam_id: int  # 试卷ID
     questions: List[Question]  # 题目列表
     test_info: TestInfo  # 试卷信息

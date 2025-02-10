@@ -1,15 +1,16 @@
 # 测试文件
-import json
 
 from teaching_design import generate_teaching_design
 from exercise_generation import generate_exercises
 from student_analysis import analyze_student_performance
 from configs import config  # 修改导入路径
 from Online_Test import generate_online_test
+from education_sql import Session, verify_exam_import, export_exam_to_json  # 从正确的模块导入
+import json
 
 
 def test_online_test():
-    """测试在线测试题目生成"""
+    """测试在线测试题目生成和数据库保存"""
     test_config = {
         'subject': '数学',
         'topic': '函数',
@@ -30,22 +31,42 @@ def test_online_test():
         return None
 
     try:
-        test_questions = generate_online_test(test_config, api_key)
-        if test_questions:
-            return test_questions
+        # 生成试卷并保存到数据库
+        test_data, exam_id = generate_online_test(test_config, api_key, save_to_db=True)
+
+        if exam_id:
+            print(f"\n试卷已保存到数据库，ID: {exam_id}")
+            session = Session()
+            try:
+                # 验证导入结果
+                verify_exam_import(session, exam_id)
+
+                # 从数据库导出试卷
+                print("\n=== 从数据库导出的试卷数据 ===")
+                exported_data = export_exam_to_json(session, exam_id)
+                if exported_data:
+                    print(json.dumps(exported_data, indent=2, ensure_ascii=False))
+                else:
+                    print("试卷导出失败")
+            finally:
+                session.close()
         else:
-            print("生成测试题目失败: 返回结果为空")
-            return None
+            print("\n试卷保存失败")
+
+        return test_data
+
     except Exception as e:
-        print(f"生成在线测试题目时出错: {str(e)}")
+        print(f"\n生成在线测试题目时出错: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return None
 
 
-def main():
-    """
+"""
+# 测试教学设计生成
+def test_teaching_design():
     api_key = config['api_keys'].get('tongyi_api_key')
-    
-    # 测试教学设计生成
+
     teaching_design = generate_teaching_design(
         subject="数学",
         topic="函数",
@@ -54,8 +75,14 @@ def main():
         grade="初中二年级",
         api_key=api_key
     )
-    
-    # 测试练习题生成
+    print("\n=== 教学设计 ===")
+    print(teaching_design)
+"""
+
+"""
+# 测试练习题生成
+def test_generate_exercises():
+    api_key = config['api_keys'].get('tongyi_api_key')
     exercise_config = {
         'choice_count': 5,
         'choice_score': 2,
@@ -64,7 +91,7 @@ def main():
         'judge_count': 4,
         'judge_score': 1
     }
-    
+
     exercises, answers = generate_exercises(
         subject="数学",
         topic="函数",
@@ -72,27 +99,13 @@ def main():
         exercise_config=exercise_config,
         api_key=api_key
     )
-    """
-    # 测试在线测试题目生成
-    test_questions = test_online_test()
-
-    # 输出结果
-    """
-    print("\n=== 教学设计 ===")
-    print(teaching_design)
-    
     print("\n=== 练习题 ===")
     print(exercises)
-    
+
     print("\n=== 答案和解析 ===")
     print(answers)
-    """
-
-    print("\n=== 在线测试题目 ===")
-    print(test_questions)
-    data = json.loads(test_questions)
-    print("解析成功:", data)
+"""
 
 
 if __name__ == "__main__":
-    main()
+    test_online_test()
