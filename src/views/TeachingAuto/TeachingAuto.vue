@@ -78,7 +78,12 @@
 
           <!-- 生成结果展示 -->
           <div v-else>
-            <el-button type="success" @click="downloadPdf('teaching_design.pdf')">下载 PDF</el-button>
+            <!-- 浏览框 -->
+            <div class="preview-container">
+              <div v-html="formatMarkdown(teachingDesignResponse)"></div>
+            </div>
+            <!-- 下载按钮 -->
+            <el-button class="download-button" type="success" @click="downloadPdf('teaching_design.pdf')">下载 PDF</el-button>
             <div v-if="teachingDesignResponse.image_path" class="image-container">
               <h3>教学设计图片</h3>
               <img :src="teachingDesignResponse.image_path" alt="教学设计图片" class="design-image">
@@ -95,6 +100,7 @@ import { ref } from 'vue';
 import { generateTeachingDesign, downloadPdf as apiDownloadPdf } from '@/api/examService';
 import type { TeachingDesignRequest, TeachingDesignResponse } from '@/types/exam';
 import { Loading } from '@element-plus/icons-vue'; // 引入加载图标
+import { marked } from 'marked'; // 引入marked库用于Markdown渲染
 
 const active = ref(0); // 当前步骤
 const teachingDesignRequest = ref<TeachingDesignRequest>({
@@ -157,6 +163,14 @@ const saveTeachingDesign = () => {
   active.value = 3; // 更新进度条到步骤3
   // 这里要记得补充保存教案的逻辑
   alert('教案已保存！');
+};
+
+// 格式化Markdown文本
+const formatMarkdown = (response: TeachingDesignResponse) => {
+  if (response) {
+    return marked(response.content); // 假设后端返回的 JSON 中包含一个 `content` 字段，存储 Markdown 内容
+  }
+  return '';
 };
 </script>
 
@@ -238,7 +252,11 @@ const saveTeachingDesign = () => {
 }
 
 .el-button {
-  margin-top: 0px;
+  margin-top: 0px; /* 其他按钮的上边距保持不变 */
+}
+
+.download-button {
+  margin-top: 10px; /* 下载按钮的上边距增加 10px */
 }
 
 .content-container {
@@ -258,5 +276,18 @@ const saveTeachingDesign = () => {
   text-align: center;
   color: #999;
   font-size: 16px;
+}
+
+.preview-container {
+  border: 1px solid #ddd;
+  padding: 0px;
+  margin-top: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+  width: calc(100% - 20px);
+}
+
+.preview-container div {
+  white-space: pre-wrap;
 }
 </style>

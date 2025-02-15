@@ -30,7 +30,7 @@
             <el-input-number v-model="exercisesRequest.exercise_config.choice_score" :min="0" class="config-input"></el-input-number>
           </div>
           <div class="config-item">
-            <span>填空题题题数：</span>
+            <span>填空题题数：</span>
             <el-input-number v-model="exercisesRequest.exercise_config.fill_count" :min="0" class="config-input"></el-input-number>
           </div>
           <div class="config-item">
@@ -38,7 +38,7 @@
             <el-input-number v-model="exercisesRequest.exercise_config.fill_score" :min="0" class="config-input"></el-input-number>
           </div>
           <div class="config-item">
-            <span>应用题题题数：</span>
+            <span>应用题题数：</span>
             <el-input-number v-model="exercisesRequest.exercise_config.application_count" :min="0" class="config-input"></el-input-number>
           </div>
           <div class="config-item">
@@ -65,10 +65,16 @@
           <p>正在生成练习题，请稍候...</p>
         </div>
 
-        <!-- 下载按钮 -->
-        <div v-else-if="exercisesResponse">
-          <el-button type="success" @click="downloadPdf('exercises.pdf')">下载练习题 PDF</el-button>
-          <el-button type="success" @click="downloadPdf('answers_and_explanations.pdf')">下载答案解析 PDF</el-button>
+        <!-- 生成结果展示 -->
+        <div v-else-if="exercisesResponse" class="result-display">
+          <div class="preview-container">
+            <div v-html="formatMarkdown(exercisesResponse)"></div>
+          </div>
+          <!-- 按钮移动到外部 -->
+          <div class="download-buttons">
+            <el-button type="success" @click="downloadPdf('exercises.pdf')">下载练习题 PDF</el-button>
+            <el-button type="success" @click="downloadPdf('answers_and_explanations.pdf')">下载答案解析 PDF</el-button>
+          </div>
         </div>
 
         <!-- 提示信息 -->
@@ -85,20 +91,20 @@ import { ref } from 'vue';
 import { generateExercises, downloadPdf as apiDownloadPdf } from '@/api/examService';
 import type { ExerciseRequest, ExerciseResponse } from '@/types/exam';
 import { Loading } from '@element-plus/icons-vue'; // 引入加载图标
+import { marked } from 'marked'; // 引入marked库用于Markdown渲染
 
-// 初始化练习题请求数据
 const exercisesRequest = ref<ExerciseRequest>({
   subject: '',
   topic: '',
   degree: '',
   exercise_config: {
      choice_count: 0,
-     choice_score: 0,
-     fill_count: 0,
-     fill_score: 0,
-     application_count: 0,
-     application_score: 0
-   }
+    choice_score: 0,
+    fill_count: 0,
+    fill_score: 0,
+    application_count: 0,
+    application_score: 0
+  }
 });
 
 const exercisesResponse = ref<ExerciseResponse | null>(null);
@@ -129,6 +135,14 @@ const downloadPdf = async (filename: string) => {
     console.error('下载 PDF 失败:', error);
   }
 };
+
+// 格式化Markdown文本
+const formatMarkdown = (response: ExerciseResponse) => {
+  if (response) {
+    return marked(response.exercises);
+  }
+  return '';
+};
 </script>
 
 <style scoped>
@@ -151,8 +165,6 @@ const downloadPdf = async (filename: string) => {
   align-items: center;
   font-size: 24px;
   font-weight: bold;
-  color: #6a806b;
-  border-bottom: 2px solid #ddd;
   padding: 10px 20px;
 }
 
@@ -195,6 +207,25 @@ const downloadPdf = async (filename: string) => {
   flex-direction: column;
   align-items: center;
   padding: 20px;
+}
+
+.result-display {
+  width: calc(100% - 70px); /* 距离左右边界各35px */
+  margin: 0 35px 40px; /* 上下间距调整 */
+}
+
+.preview-container {
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-top: 20px;
+  max-height: 300px; /* 固定高度 */
+  overflow-y: auto; /* 可滚动 */
+}
+
+.download-buttons {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px; /* 距离浏览框下边沿20px */
 }
 
 .el-form-item {
