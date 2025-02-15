@@ -20,19 +20,31 @@
             <el-option label="困难" value="hard" />
           </el-select>
         </el-form-item>
-        <el-form-item label="练习题配置">
-          <el-form-item label="题型">
-            <el-select v-model="exercisesRequest.exercise_config.type">
-              <el-option label="选择题" value="choice" />
-              <el-option label="填空题" value="fill" />
-              <el-option label="判断题" value="judge" />
-              <el-option label="简答题" value="short_answer" />
-              <el-option label="应用计算题" value="application" />
-            </el-select>
-          </el-form-item>
-          <el-form-item label="题目数量">
-            <el-input-number v-model="exercisesRequest.exercise_config.count" :min="1" />
-          </el-form-item>
+        <el-form-item label="题型配置">
+          <div class="config-item">
+            <span>选择题题数：</span>
+            <el-input-number v-model="exercisesRequest.exercise_config.choice_count" :min="0" class="config-input"></el-input-number>
+          </div>
+          <div class="config-item">
+            <span>选择题分数：</span>
+            <el-input-number v-model="exercisesRequest.exercise_config.choice_score" :min="0" class="config-input"></el-input-number>
+          </div>
+          <div class="config-item">
+            <span>填空题题题数：</span>
+            <el-input-number v-model="exercisesRequest.exercise_config.fill_count" :min="0" class="config-input"></el-input-number>
+          </div>
+          <div class="config-item">
+            <span>填空题分数：</span>
+            <el-input-number v-model="exercisesRequest.exercise_config.fill_score" :min="0" class="config-input"></el-input-number>
+          </div>
+          <div class="config-item">
+            <span>应用题题题数：</span>
+            <el-input-number v-model="exercisesRequest.exercise_config.application_count" :min="0" class="config-input"></el-input-number>
+          </div>
+          <div class="config-item">
+            <span>应用题分数：</span>
+            <el-input-number v-model="exercisesRequest.exercise_config.application_score" :min="0" class="config-input"></el-input-number>
+          </div>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleGenerateExercises">生成练习题</el-button>
@@ -74,14 +86,19 @@ import { generateExercises, downloadPdf as apiDownloadPdf } from '@/api/examServ
 import type { ExerciseRequest, ExerciseResponse } from '@/types/exam';
 import { Loading } from '@element-plus/icons-vue'; // 引入加载图标
 
+// 初始化练习题请求数据
 const exercisesRequest = ref<ExerciseRequest>({
   subject: '',
   topic: '',
   degree: '',
   exercise_config: {
-    type: 'choice',
-    count: 1
-  }
+     choice_count: 0,
+     choice_score: 0,
+     fill_count: 0,
+     fill_score: 0,
+     application_count: 0,
+     application_score: 0
+   }
 });
 
 const exercisesResponse = ref<ExerciseResponse | null>(null);
@@ -123,7 +140,7 @@ const downloadPdf = async (filename: string) => {
 
 .box-card {
   margin-bottom: 20px;
-  background-color: #f9f9f9;
+  background-color: #f9f9f9f9;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
@@ -141,6 +158,16 @@ const downloadPdf = async (filename: string) => {
 
 .form-content {
   padding: 20px;
+}
+
+.config-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.config-input {
+  margin-left: 10px;
 }
 
 .loading-container {

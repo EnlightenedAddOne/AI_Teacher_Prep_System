@@ -26,8 +26,21 @@ export interface ExerciseRequest {
 
 // 练习题配置接口
 export interface ExerciseConfig {
-  type: string; // 练习题类型（如选择题、填空题等）
-  count: number; // 题目数量
+  choice?: {
+    enabled: boolean; // 是否启用选择题
+    count: number; // 选择题数量
+    score: number; // 选择题分数
+  };
+  fill?: {
+    enabled: boolean; // 是否启用填空题
+    count: number; // 填空题数量
+    score: number; // 填空题分数
+  };
+  application?: {
+    enabled: boolean; // 是否启用应用题
+    count: number; // 应用题数量
+    score: number; // 应用题分数
+  };
   [key: string]: unknown; // 允许扩展其他配置项
 }
 
@@ -37,7 +50,6 @@ export interface ExerciseResponse {
   exercises_pdf_url: string; // 练习题 PDF 链接
   answers_pdf_url: string; // 答案解析 PDF 链接
 }
-
 // 在线测试请求和响应类型
 export interface OnlineTestRequest {
   subject: string; // 科目
