@@ -23,31 +23,38 @@
         <el-form-item label="题型配置">
           <div class="config-item">
             <span>选择题题数：</span>
-            <el-input-number v-model="exercisesRequest.exercise_config.choice_count" :min="0" class="config-input"></el-input-number>
-          </div>
-          <div class="config-item">
-            <span>选择题分数：</span>
-            <el-input-number v-model="exercisesRequest.exercise_config.choice_score" :min="0" class="config-input"></el-input-number>
+            <el-input-number v-model="exercisesRequest.exercise_config.choice.count" :min="0" class="config-input"></el-input-number>
+            <span class="label">选择题分数：</span>
+            <el-input-number v-model="exercisesRequest.exercise_config.choice.score" :min="0" class="config-input"></el-input-number>
           </div>
           <div class="config-item">
             <span>填空题题数：</span>
-            <el-input-number v-model="exercisesRequest.exercise_config.fill_count" :min="0" class="config-input"></el-input-number>
+            <el-input-number v-model="exercisesRequest.exercise_config.fill.count" :min="0" class="config-input"></el-input-number>
+            <span class="label">填空题分数：</span>
+            <el-input-number v-model="exercisesRequest.exercise_config.fill.score" :min="0" class="config-input"></el-input-number>
           </div>
           <div class="config-item">
-            <span>填空题分数：</span>
-            <el-input-number v-model="exercisesRequest.exercise_config.fill_score" :min="0" class="config-input"></el-input-number>
+            <span>判断题题数：</span>
+            <el-input-number v-model="exercisesRequest.exercise_config.judge.count" :min="0" class="config-input"></el-input-number>
+            <span class="label">判断题分数：</span>
+            <el-input-number v-model="exercisesRequest.exercise_config.judge.score" :min="0" class="config-input"></el-input-number>
+          </div>
+          <div class="config-item">
+            <span>简答题题数：</span>
+            <el-input-number v-model="exercisesRequest.exercise_config.short_answer.count" :min="0" class="config-input"></el-input-number>
+            <span class="label">简答题分数：</span>
+            <el-input-number v-model="exercisesRequest.exercise_config.short_answer.score" :min="0" class="config-input"></el-input-number>
           </div>
           <div class="config-item">
             <span>应用题题数：</span>
-            <el-input-number v-model="exercisesRequest.exercise_config.application_count" :min="0" class="config-input"></el-input-number>
-          </div>
-          <div class="config-item">
-            <span>应用题分数：</span>
-            <el-input-number v-model="exercisesRequest.exercise_config.application_score" :min="0" class="config-input"></el-input-number>
+            <el-input-number v-model="exercisesRequest.exercise_config.application.count" :min="0" class="config-input"></el-input-number>
+            <span class="label">应用题分数：</span>
+            <el-input-number v-model="exercisesRequest.exercise_config.application.score" :min="0" class="config-input"></el-input-number>
           </div>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleGenerateExercises">生成练习题</el-button>
+          <el-button type="danger" @click="resetForm">取消生成</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -98,12 +105,11 @@ const exercisesRequest = ref<ExerciseRequest>({
   topic: '',
   degree: '',
   exercise_config: {
-     choice_count: 0,
-    choice_score: 0,
-    fill_count: 0,
-    fill_score: 0,
-    application_count: 0,
-    application_score: 0
+    choice: { count: 0, score: 0, enabled: true },
+    fill: { count: 0, score: 0, enabled: true },
+    judge: { count: 0, score: 0, enabled: true },
+    short_answer: { count: 0, score: 0, enabled: true },
+    application: { count: 0, score: 0, enabled: true }
   }
 });
 
@@ -143,6 +149,23 @@ const formatMarkdown = (response: ExerciseResponse) => {
   }
   return '';
 };
+
+// 重置表单
+const resetForm = () => {
+  exercisesRequest.value = {
+    subject: '',
+    topic: '',
+    degree: '',
+    exercise_config: {
+      choice: { count: 0, score: 0, enabled: true },
+      fill: { count: 0, score: 0, enabled: true },
+      judge: { count: 0, score: 0, enabled: true },
+      short_answer: { count: 0, score: 0, enabled: true },
+      application: { count: 0, score: 0, enabled: true }
+    }
+  };
+  exercisesResponse.value = null;
+};
 </script>
 
 <style scoped>
@@ -154,7 +177,7 @@ const formatMarkdown = (response: ExerciseResponse) => {
 
 .box-card {
   margin-bottom: 20px;
-  background-color: #f9f9f9f9;
+  background-color: #f9f9f9;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
@@ -174,8 +197,17 @@ const formatMarkdown = (response: ExerciseResponse) => {
 
 .config-item {
   display: flex;
+  flex-wrap: wrap; /* 允许换行 */
   align-items: center;
   margin-bottom: 20px;
+}
+
+.config-item span {
+  margin-right: 15px; /* 增加左右间距 */
+}
+
+.config-item .label {
+  margin-left: 15px; /* 增加左右间距 */
 }
 
 .config-input {

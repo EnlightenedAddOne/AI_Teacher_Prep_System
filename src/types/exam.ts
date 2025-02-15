@@ -26,22 +26,31 @@ export interface ExerciseRequest {
 
 // 练习题配置接口
 export interface ExerciseConfig {
-  choice?: {
+  choice: {
     enabled: boolean; // 是否启用选择题
     count: number; // 选择题数量
     score: number; // 选择题分数
   };
-  fill?: {
+  fill: {
     enabled: boolean; // 是否启用填空题
     count: number; // 填空题数量
     score: number; // 填空题分数
   };
-  application?: {
+  judge: {
+    enabled: boolean; // 是否启用判断题
+    count: number; // 判断题数量
+    score: number; // 判断题分数
+  };
+  short_answer: {
+    enabled: boolean; // 是否启用简答题
+    count: number; // 简答题数量
+    score: number; // 简答题分数
+  };
+  application: {
     enabled: boolean; // 是否启用应用题
     count: number; // 应用题数量
     score: number; // 应用题分数
   };
-  [key: string]: unknown; // 允许扩展其他配置项
 }
 
 export interface ExerciseResponse {
