@@ -10,7 +10,15 @@ class TeachingDesignRequest(BaseModel):
     duration: str
     grade: str
     with_images: bool = Field(default=False)
-    image_count: int = Field(default=5, ge=1, le=10)
+    image_count: int = Field(default=5, ge=1, le=20, description="图片数量范围1-20")
+
+    @validator('image_count')
+    def validate_image_count(cls, v, values):
+        if values.get('with_images') and v < 1:
+            raise ValueError("当需要图片时，图片数量至少为1")
+        if not values.get('with_images') and v > 0:
+            raise ValueError("未选择需要图片时，图片数量应设为0")
+        return v
 
 
 class ExerciseRequest(BaseModel):

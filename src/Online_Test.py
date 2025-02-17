@@ -92,7 +92,6 @@ def generate_online_test(test_config: Dict, api_key: str, save_to_db: bool = Tru
                 question["type"] = "应用计算题"
         
         # 保存到数据库
-        exam_id = None
         if save_to_db:
             # 创建数据库会话
             session = Session()

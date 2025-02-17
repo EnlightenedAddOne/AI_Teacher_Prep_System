@@ -1,11 +1,15 @@
 import configparser
 import os
+from pathlib import Path
 
 
 def load_ini_config():
     config_parser = configparser.ConfigParser()
     config_file_path = os.path.join(os.path.dirname(__file__), 'config.ini')
-    config_parser.read(config_file_path)
+
+    # 指定使用UTF-8编码读取配置文件
+    with open(config_file_path, 'r', encoding='utf-8-sig') as f:
+        config_parser.read_file(f)
     return config_parser
 
 
@@ -35,5 +39,5 @@ ini_con = load_ini_config()
 # 完整配置字典
 config = {
     'api_keys': get_api_keys_config(ini_con),
-    'database': get_database_config(ini_con)
+    'database': get_database_config(ini_con),
 }

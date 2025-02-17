@@ -14,7 +14,11 @@ authors = [
 license = {text = "MIT"}
 
 [tool.setuptools]
-packages = ["src"]
+packages = ["src", "configs", "education_sql", "models", "utils"]
 
 [tool.setuptools.package-dir]
-"" = "." 
+"" = "."
+"configs" = "src/configs"
+"education_sql" = "src/education_sql"
+"models" = "src/models"
+"utils" = "src/utils" 

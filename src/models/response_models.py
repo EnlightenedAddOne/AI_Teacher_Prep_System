@@ -1,21 +1,23 @@
 from typing import List, Optional, Dict, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class TeachingImage(BaseModel):
     """教学图片信息"""
     title: str
-    url: str
+    url: str  # 原始图片URL
     type: str
     md5: str
+    source: str = "Bing Images"
+    download_url: str  # 图片下载链接
 
 
 class TeachingDesignResponse(BaseModel):
     """教学设计响应"""
     content: str  # markdown格式的教学设计内容
     teach_pdf_url: str  # 教学设计PDF下载链接
-    images: Optional[List[TeachingImage]] = None  # 可选的教学图片列表
+    images: Optional[List[TeachingImage]] = None
 
 
 class ExerciseResponse(BaseModel):
