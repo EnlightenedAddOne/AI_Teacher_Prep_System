@@ -243,3 +243,39 @@ online_test_prompt = PromptTemplate(
     ],
     template=create_online_test_template()
 )
+
+# 演讲稿优化提示词
+text_polishing_prompt = PromptTemplate(
+    input_variables=[
+        "original_text"
+    ],
+    template="""
+        请对以下演讲稿文本进行润色优化，特别关注段落间的自然过渡与连接词使用：
+        {original_text}
+        
+        要求：
+        1. 保持原有技术内容的准确性
+        2. 优化段落间过渡语句，使用更自然的连接词（例如：接下来、在此基础上、值得关注的是等）
+        3. 输出为规范的JSON格式：
+        {{
+            "enhanced": [
+                "优化后段落1",
+                "优化后段落2",
+                // ...其他段落...
+            ]
+        }}
+        4. 确保JSON格式严格合规，可直接被Python的json模块解析
+        5. 保留原始段落顺序，空段落保持为空字符串""
+        6. 每个段落必须使用至少1个连接词
+        
+        示例：
+        原始段落：'这部分我将探讨TCP协议概述...'
+        优化后应标注：
+        {{
+            "enhanced": [
+                "接下来我们将系统探讨...值得关注的是...",
+                // ...其他优化段落...
+            ]
+        }}
+        """
+)
