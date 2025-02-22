@@ -352,18 +352,18 @@ class AIPPT():
             return None
 
 
-def download_ppt(url):
+def download_ppt(url,ppt_path="downloaded_file.pptx"):
     response = requests.get(url)
-    with open("./downloaded_file.pptx", "wb") as file:
+    with open(f"{ppt_path}", "wb") as file:
         file.write(response.content)
     print("文件下载完成")
 
-def main_create_ppt(APPId,APISecret,txt,templateId):
-    demo = AIPPT(APPId,APISecret,txt,templateId)
+def main_create_ppt(APPId,APISecret,ppt_outline,templateId,ppt_path=''):
+    demo = AIPPT(APPId,APISecret,ppt_outline,templateId)
     taskid = demo.create_task()
     result = demo.get_result(taskid)
     print("生成的PPT请从此地址获取：\n" + result)
-    download_ppt(result)
+    download_ppt(result,ppt_path)
 
 if __name__ == '__main__':
     #控制台获取 
