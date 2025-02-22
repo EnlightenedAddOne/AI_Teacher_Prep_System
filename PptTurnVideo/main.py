@@ -10,7 +10,7 @@ def main():
     # 文件路径
     output_folder = 'output_images1'
     output_video_path = 'output_video.mp4'
-    ppt_path = 'downloaded_file.pptx'
+    ppt_path = r'D:\PROJECT\Python\test01\PptTurnVideo\downloaded_file.pptx'
 
 
     # ppt生成
@@ -27,12 +27,12 @@ def main():
                 实际应用与常见问题
                 总结与对比
     """
-    main_create_ppt(APPId, APISecret, ppt_outline,templateId,ppt_path) #ppt_path为生成ppt的存放路径
+    # main_create_ppt(APPId, APISecret, ppt_outline,templateId,ppt_path) #ppt_path为生成ppt的存放路径
 
 
     # 获取ppt演讲稿内容
     slide_texts = extract_speaker_notes(ppt_path)
-    # print(slide_texts)
+    print(slide_texts)
 
     """**************这里应该调用ai对演讲稿进行润色**************"""
 
