@@ -1,4 +1,4 @@
-from .request_models import TeachingDesignRequest, ExerciseRequest, OnlineTestRequest
+from .request_models import TeachingDesignRequest, ExerciseRequest, OnlineTestRequest, ResourceRecommendationRequest
 from .response_models import (
     TeachingImage,
     TeachingDesignResponse,
@@ -6,18 +6,25 @@ from .response_models import (
     QuestionOption,
     Question,
     TestInfo,
-    OnlineTestResponse
+    OnlineTestResponse, 
+    RecommendedBook,
+    RecommendedPaper,
+    RecommendedVideo,
 )
 
 __all__ = [
     'TeachingDesignRequest',
     'ExerciseRequest',
     'OnlineTestRequest',
+    'ResourceRecommendationRequest',
     'TeachingImage',
     'TeachingDesignResponse',
     'ExerciseResponse',
     'QuestionOption',
     'Question',
     'TestInfo',
-    'OnlineTestResponse'       
+    'OnlineTestResponse',
+    'RecommendedBook',
+    'RecommendedPaper',
+    'RecommendedVideo',
 ]   

@@ -144,39 +144,8 @@ ppt_prompt = PromptTemplate(
 )
 
 
-def image_prompt() -> str:
-    """教学图片生成提示词模板"""
-    return """
-    你是一位专业的教学图片设计专家。请根据以下教学内容，生成一个详细的图片描述提示词，用于生成教学图片。
-
-    教学内容: {description}
-
-    要求：
-    1. 图片类型可以是：
-       - 流程图：展示步骤、过程或因果关系
-       - 结构图：展示概念之间的关系、层次或组成部分
-       - 实物图：展示具体物体、设备或现象
-       - 对比图：展示不同概念的异同
-       - 统计图：展示数据关系或变化趋势
-       
-    2. 图片要求：
-       - 清晰度：4K高清质量
-       - 风格：扁平化设计，简洁明快
-       - 配色：使用适合教育的柔和色调
-       - 布局：主次分明，重点突出
-       
-    3. 教学特点：
-       - 适合目标年级学生理解
-       - 突出教学重点和难点
-       - 便于教师讲解和学生理解
-       
-    请生成DALL-E图片生成提示词，确保包含以下要素：
-    - 图片类型说明
-    - 具体内容描述
-    - 视觉风格要求
-    - 布局和构图说明
-    - 教学用途说明
-    """
+def image_prompt():
+    return None
 
 
 def video_prompt():
@@ -244,6 +213,130 @@ online_test_prompt = PromptTemplate(
     template=create_online_test_template()
 )
 
+# 资源推荐提示模板
+book_recommendation_prompt = PromptTemplate(
+    input_variables=["topic", "count"],
+    template="""作为图书推荐专家，请推荐{count}本关于'{topic}'的权威教材或参考书籍。
+要求：
+1. 必须包含以下字段：title（书名）、authors（作者列表）、publisher（出版社）、publication_year（出版年份）
+2. 优先推荐近5年的出版物
+3. 使用严格JSON格式返回，结构示例：
+{{"books": [
+  {{
+    "title": "计算机网络（第7版）",
+    "authors": ["谢希仁"],
+    "publisher": "电子工业出版社",
+    "publication_year": 2023,
+    "isbn": "9787121373133"
+  }}
+]}}"""
+)
+
+paper_recommendation_prompt = PromptTemplate(
+    input_variables=["topic", "count"],
+    template="""作为学术推荐专家，请推荐{count}篇关于'{topic}'的核心期刊论文。
+要求：
+1. 必须包含以下字段：title（标题）、authors（作者列表）、journal（期刊名称）、publication_year（发表年份）
+2. 优先推荐近3年的高被引论文
+3. 使用严格JSON格式返回，结构示例：
+{{"papers": [
+  {{
+    "title": "TCP拥塞控制算法研究",
+    "authors": ["李明", "王强"],
+    "journal": "计算机学报",
+    "publication_year": 2022,
+    "doi": "10.1234/12345678"
+  }}
+]}}"""
+)
+
+video_recommendation_prompt = PromptTemplate(
+    input_variables=["topic", "count"],
+    template="""# 联网搜索指令
+请使用web_search函数获取实时数据！
+
+# 搜索参数
+search_query: "{topic} 教学视频"
+max_results: 10
+
+# 筛选标准
+1. 平台：哔哩哔哩
+2. 发布时间：最近6个月
+3. 播放量 ≥ 2万
+4. 时长5-30分钟
+
+# 输出格式
+{{
+  "videos": [
+    {{
+      "title": "视频标题（必须包含'{topic}'）",
+      "url": "https://www.bilibili.com/video/BVxxx",
+      "duration": "MM:SS",
+      "view_count": "数字+万",
+      "uploader": "认证机构名称",
+      "score": 0-100
+    }}
+  ]
+}}"""
+)
+
+
+integrated_recommendation_prompt = PromptTemplate(
+    input_variables=["topic", "book_count", "paper_count", "video_count"],
+    template="""请使用web_search工具搜索并推荐以下教育资源：
+
+主题：{topic}
+需求：
+- {book_count}本相关书籍
+- {paper_count}篇学术论文
+- {video_count}个教学视频
+
+搜索关键词：
+1. "{topic} 教材 书籍 豆瓣"
+2. "{topic} 论文 知网 核心期刊"
+3. "{topic} 教学视频 bilibili"
+
+请按以下JSON格式返回结果：
+{{
+  "recommendations": {{
+    "books": [
+      {{
+        "title": "Python编程：从入门到实践",  # 示例
+        "author": "埃里克·马瑟斯",
+        "publisher": "人民邮电出版社",
+        "publish_year": "2023",
+        "douban_score": "9.2"
+      }}
+    ],
+    "papers": [
+      {{
+        "title": "Python程序设计课程教学改革与实践",  # 示例
+        "authors": ["张三", "李四"],
+        "journal": "计算机教育",
+        "publish_year": "2023",
+        "citation_count": "12"
+      }}
+    ],
+    "videos": [
+      {{
+        "title": "Python基础教程完整版",  # 示例
+        "url": "https://www.bilibili.com/video/xxx",
+        "duration_minutes": "45",
+        "view_count": "12.5万",
+        "platform": "bilibili"
+      }}
+    ]
+  }}
+}}
+
+注意事项：
+1. 必须使用web_search工具获取真实数据
+2. 所有数值必须返回字符串格式
+3. 确保资源质量（高评分、高引用、高播放量）
+4. 优先推荐近两年的资源"""
+)
+
+
 # 演讲稿优化提示词
 text_polishing_prompt = PromptTemplate(
     input_variables=[
@@ -253,9 +346,12 @@ text_polishing_prompt = PromptTemplate(
         请对以下演讲稿文本进行润色优化，特别关注段落间的自然过渡与连接词使用：
         {original_text}
         
+        已知：
+        1. 原始数据是一个文本列表，列表中的每个元素对应ppt每一页的讲授稿中，其中每页讲的内容都用逗号隔开了，你在处理时须将其作为一个整体
+        
         要求：
         1. 保持原有技术内容的准确性
-        2. 优化段落间过渡语句，使用更自然的连接词（例如：接下来、在此基础上、值得关注的是等）
+        2. 将原文本优化润色使其更加通顺流畅，同时注意页与页之间的连接词使用，避免多次使用同一个连接词。
         3. 输出为规范的JSON格式：
         {{
             "enhanced": [
@@ -266,8 +362,8 @@ text_polishing_prompt = PromptTemplate(
         }}
         4. 确保JSON格式严格合规，可直接被Python的json模块解析
         5. 保留原始段落顺序，空段落保持为空字符串""
-        6. 每个段落必须使用至少1个连接词
-        
+        6. 你的角色是一位老师，授课对象仅是学生，修改原始文案使其更加符合老师的语气
+
         示例：
         原始段落：'这部分我将探讨TCP协议概述...'
         优化后应标注：
@@ -279,3 +375,26 @@ text_polishing_prompt = PromptTemplate(
         }}
         """
 )
+
+
+# PPT大纲生成提示词
+ppt_outline_prompt = PromptTemplate(
+    input_variables=["subject", "topic"],
+    template="""作为一个专业的教育PPT设计专家，请为{subject}学科的{topic}课程，生成一份适合教学使用的PPT大纲。
+要求：
+1. 结构清晰，层次分明
+2. PPT封面大标题使用{topic}
+3. 每个章节要有明确的标题
+4. 将章节控制在六点以内
+5. 适合课堂教学使用
+6. 输出格式为JSON，包含以下字段：
+   - title: PPT标题
+   - sections: 章节数组，每个章节包含：
+     - title: 章节标题
+     - points: 要点数组
+
+"""
+)
+
+
+

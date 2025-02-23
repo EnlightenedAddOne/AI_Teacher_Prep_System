@@ -13,12 +13,40 @@ class TeachingImage(BaseModel):
     download_url: str  # 图片下载链接
 
 
+class RecommendedBook(BaseModel):
+    title: str
+    authors: List[str]
+    publisher: str
+    publication_year: int
+    isbn: Optional[str]
+
+
+class RecommendedPaper(BaseModel):
+    title: str
+    authors: List[str]
+    journal: str
+    publication_year: int
+    doi: Optional[str]
+
+
+class RecommendedVideo(BaseModel):
+    title: str
+    platform: str
+    url: str
+    duration: Optional[str]
+
+
 class TeachingDesignResponse(BaseModel):
     """教学设计响应"""
     content: str  # markdown格式的教学设计内容
     teach_pdf_url: str  # 教学设计PDF下载链接
     images: Optional[List[TeachingImage]] = None
-
+    ppt_video_path: Optional[str] = None  # ppt转视频的输出路径
+    books: Optional[List[RecommendedBook]] = None
+    videos: Optional[List[RecommendedVideo]] = None
+    papers: Optional[List[RecommendedPaper]] = None
+    design_id: str
+    
 
 class ExerciseResponse(BaseModel):
     """练习题响应"""

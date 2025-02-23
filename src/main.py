@@ -109,3 +109,15 @@ def test_generate_exercises():
 
 if __name__ == "__main__":
     test_online_test()
+
+@app.get("/api/status")
+async def api_status():
+    return {
+        "requests": {
+            "total": recommender.metrics["total_requests"],
+            "success_rate": recommender.metrics["success_requests"] / recommender.metrics["total_requests"] if recommender.metrics["total_requests"] > 0 else 0,
+            "cache_hit_rate": recommender.metrics["cache_hits"] / recommender.metrics["total_requests"] if recommender.metrics["total_requests"] > 0 else 0
+        },
+        "rate_limit": recommender.rate_limit,
+        "last_request": recommender.last_request_time
+    }

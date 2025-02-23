@@ -5,10 +5,11 @@ import random
 from multiprocessing.dummy import Pool
 from pathlib import Path
 from time import time, sleep
-from typing import List, Dict
+from typing import List, Dict, Optional
 from urllib.parse import quote
 import re
 import hashlib
+from threading import Lock  # 新增导入
 
 import requests
 from lxml import etree
@@ -18,9 +19,13 @@ from configs import config
 # 配置日志
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler()
+    ]
 )
 logger = logging.getLogger('BingImageSpider')
+logger.setLevel(logging.INFO)  # 仅保留必要日志
 
 
 # 作用：按关键字、图片数量爬取必应图片，并打印每张图片的名称及其链接。
@@ -108,25 +113,33 @@ class BingImagesSpider:
         'default': ['教学图', '示例图']
     }
 
+    # 合并所有图片类型关键词
+    ALL_IMAGE_KEYWORDS = [
+        '示意图', '结构图', '模型图', '流程图',
+        '实物图', '实拍图', '图表', '曲线图',
+        '教学图', '示例图'
+    ]
+
     # 新增配置参数
     min_image_size = 10 * 1024  # 降低到10KB
-    valid_domains = ['zhimg.com', 'csdn.net', 'blogimg.cn', 'githubusercontent.com', 'sinaimg.cn', 'bdstatic.com', 'processon.com']
+    valid_domains = ['zhimg.com', 'csdn.net', 'blogimg.cn', 'githubusercontent.com', 'sinaimg.cn', 'bdstatic.com',
+                     'processon.com']
 
-    def __init__(self, keyword: str, amount: int, img_type: str = 'diagram', proxy_list: List[str] = None):
+    def __init__(self, keyword: str, amount: int, proxy_list: List[str] = None):
         """
-        初始化爬虫
+        初始化爬虫（不再需要img_type参数）
         :param keyword: 搜索关键词
         :param amount: 需要图片数量
-        :param img_type: 图片类型（diagram/real/chart/default）
         :param proxy_list: 代理列表
         """
-        self.keyword = self._build_search_keyword(keyword, img_type)
+        self.keyword = self._build_search_keyword(keyword)
         self.amount = max(1, min(amount, 150))
         self.required_amount = max(amount * 5, 100)  # 至少爬取100张候选
         self.proxy_list = proxy_list or []
         self.current_proxy = None
         self.thread_pool = Pool(self.thread_amount)
         self.found_images = set()  # 用于去重的集合
+        self.lock = Lock()  # 新增线程锁
         # 增加常见图片网站白名单
         self.domain_headers = {
             'zhimg.com': {'Referer': 'https://www.zhihu.com/'},
@@ -136,18 +149,17 @@ class BingImagesSpider:
         # 修正为正确的三级父目录（src -> Langchain -> 项目根目录）
         current_dir = Path(__file__).parent  # src目录
         self.output_dir = current_dir.parent / "output" / "Images"  # Langchain/output/Images
-        
+
         # 强制创建目录（与PDF生成逻辑一致）
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # 添加路径验证日志
         logger.info(f"绝对存储路径：{self.output_dir.absolute()}")
         logger.info(f"目录可写：{os.access(str(self.output_dir), os.W_OK)}")
 
-    def _build_search_keyword(self, base_keyword: str, img_type: str) -> str:
-        """构建带图片类型的关键词"""
-        modifiers = self.IMAGE_TYPES.get(img_type, self.IMAGE_TYPES['default'])
-        return f'{base_keyword} {" ".join(modifiers)}'
+    def _build_search_keyword(self, base_keyword: str) -> str:
+        """构建带所有类型关键词的搜索词"""
+        return f'{base_keyword} {" ".join(self.ALL_IMAGE_KEYWORDS)}'
 
     def _rotate_proxy(self):
         """轮换代理IP"""
@@ -185,22 +197,26 @@ class BingImagesSpider:
         return self.headers
 
     def _deduplicate(self, image_list: List[Dict]) -> List[Dict]:
-        """多维度去重"""
-        seen = set()
+        """增强型多维度去重"""
         unique_images = []
 
         for img in image_list:
-            # 使用更严格的特征值
-            identifier = hashlib.md5(img['url'].encode()).hexdigest()
-            
-            # 添加尺寸去重
-            size_hash = f"{img.get('width',0)}x{img.get('height',0)}"
-            identifier = f"{identifier}_{size_hash}"
+            # 生成复合特征值：URL哈希 + 尺寸 + 文件头特征
+            url_hash = hashlib.md5(img['url'].encode()).hexdigest()
+            size_hash = f"{img.get('width', 0)}x{img.get('height', 0)}"
+            file_header = img.get('md5', '')[:6]  # 使用前6位MD5
 
-            if identifier not in seen and identifier not in self.found_images:
-                seen.add(identifier)
-                self.found_images.add(identifier)
-                unique_images.append(img)
+            identifier = f"{url_hash}_{size_hash}_{file_header}"
+
+            # 使用线程锁保证原子操作
+            with self.lock:
+                if identifier not in self.found_images:
+                    self.found_images.add(identifier)
+                    unique_images.append(img)
+                    # 实时日志记录
+                    logger.debug(f"新增唯一图片：{identifier}")
+                else:
+                    logger.debug(f"发现重复图片：{identifier}")
 
         return unique_images
 
@@ -222,11 +238,11 @@ class BingImagesSpider:
             # 使用流式请求获取部分数据
             for attempt in range(3):
                 with requests.get(
-                    img_info['url'],
-                    headers=headers,
-                    proxies=self.current_proxy,
-                    stream=True,
-                    timeout=8
+                        img_info['url'],
+                        headers=headers,
+                        proxies=self.current_proxy,
+                        stream=True,
+                        timeout=8
                 ) as resp:
                     resp.raise_for_status()
 
@@ -243,7 +259,7 @@ class BingImagesSpider:
                         continue
 
                     # 添加内容长度验证（与PDF生成时的验证类似）
-                    if len(resp.content) < 10*1024:  # 10KB最小限制
+                    if len(resp.content) < 10 * 1024:  # 10KB最小限制
                         continue
 
                     return True
@@ -253,36 +269,87 @@ class BingImagesSpider:
             logger.error(f"图片验证失败：{str(e)}")
             return False
 
-    def save_image(self, url, filename, file_type):
-        """保存图片到指定目录"""
-        for i in range(5):  # 重试5次
+    def _get_file_type(self, url: str) -> Optional[str]:
+        """从URL和Content-Type获取文件类型"""
+        try:
+            # 优先从URL获取扩展名
+            if '.' in url:
+                ext = url.split('.')[-1].lower()
+                if ext in {'jpg', 'jpeg', 'png', 'gif', 'webp'}:
+                    return ext
+
+            # 发起HEAD请求获取Content-Type
+            with requests.head(url, headers=self.headers, timeout=10) as resp:
+                content_type = resp.headers.get('Content-Type', '')
+                if 'image/jpeg' in content_type:
+                    return 'jpg'
+                elif 'image/png' in content_type:
+                    return 'png'
+                elif 'image/gif' in content_type:
+                    return 'gif'
+                elif 'image/webp' in content_type:
+                    return 'webp'
+            return None
+        except Exception as e:
+            logger.warning(f"获取文件类型失败：{str(e)}")
+            return None
+
+    def _is_valid_image(self, file_path: Path) -> bool:
+        """验证是否为有效图片文件"""
+        try:
+            from PIL import Image
             try:
-                response = requests.get(url, headers=self.headers, timeout=20)
-                response.raise_for_status()
-                
-                # 添加尺寸验证豁免
-                if len(response.content) < 512:  # 允许更小的图片
-                    logger.warning(f"图片过小被过滤：{url}")
-                    return None
-                    
-                # 从URL生成唯一文件名
-                file_md5 = hashlib.md5(url.encode()).hexdigest()
-                base_name = f"{file_md5}_{int(time())}"
-                filename = f"{base_name}.{file_type}"
-                counter = 1
-                while (self.output_dir / filename).exists():
-                    filename = f"{base_name}_{counter}.{file_type}"
-                    counter += 1
-                
-                filepath = self.output_dir / filename
-                with open(filepath, 'wb') as f:
-                    f.write(response.content)
-                logger.info(f"成功保存：{filepath}")
-                return filepath.name
+                with Image.open(file_path) as img:
+                    img.verify()
+                return file_path.stat().st_size > 1024
             except Exception as e:
-                logger.error(f"下载失败（尝试{i+1}/5）: {str(e)}")
-                sleep(2)
-        return None
+                logger.warning(f"损坏图片：{file_path} - {str(e)}")
+                return False
+        except ImportError:
+            return file_path.stat().st_size > 1024 * 10
+
+    def save_image(self, url: str, filename: str) -> Optional[Path]:
+        temp_file = None  # 显式初始化变量
+        try:
+            # 获取正确扩展名
+            file_type = self._get_file_type(url)
+            if not file_type:
+                return None
+
+            # 生成临时文件名
+            temp_file = self.output_dir / f"temp_{int(time())}.{file_type}"
+
+            # 流式下载并计算MD5
+            md5_hash = hashlib.md5()
+            with requests.get(url, headers=self._get_custom_headers(url),
+                              timeout=15, stream=True) as resp:
+                resp.raise_for_status()
+
+                with open(temp_file, 'wb') as f:
+                    for chunk in resp.iter_content(4096):
+                        if chunk:  # 过滤保持连接的空白块
+                            f.write(chunk)
+                            md5_hash.update(chunk)
+
+            # 验证文件有效性
+            if not self._is_valid_image(temp_file):
+                temp_file.unlink()
+                return None
+
+            # 生成最终文件名
+            final_filename = f"{md5_hash.hexdigest()}.{file_type}"
+            final_path = self.output_dir / final_filename
+
+            # 重命名临时文件
+            temp_file.rename(final_path)
+            logger.info(f"成功保存：{final_path}")
+            return final_path
+
+        except Exception as e:
+            logger.error(f"保存失败：{str(e)}")
+            if temp_file and temp_file.exists():  # 增加空值检查
+                temp_file.unlink()
+            return None
 
     def run(self) -> List[Dict]:
         """执行爬取"""
@@ -325,25 +392,25 @@ class BingImagesSpider:
                     if self._validate_image(img):
                         # 生成唯一文件名
                         filename = f"{img['md5']}_{int(time())}.{img['type']}"
-                        saved_path = self.save_image(img['url'], filename, img['type'])
+                        saved_path = self.save_image(img['url'], filename)
                         if saved_path:
                             img['local_path'] = str(saved_path)
                             validated_images.append(img)
-            
+
             # 添加结果验证
             logger.info(f"实际保存文件列表：{list(self.output_dir.glob('*'))}")
-            
+
             # 在最后添加详细日志
             logger.info(f"请求数量: {len(responses)}页")
             logger.info(f"原始结果: {len(image_list)}张")
             logger.info(f"去重后: {len(unique_images)}张")
             logger.info(f"验证通过: {len(validated_images)}张")
             logger.info(f"最终保存: {len(list(self.output_dir.glob('*')))}张")
-            
+
             # 在返回前添加数量控制
             # 精确截断结果
             final_results = validated_images[:self.amount]
-            
+
             # 添加最终数量验证
             logger.info(f"最终返回数量: {len(final_results)}/{self.amount}")
             return final_results
@@ -359,9 +426,8 @@ class BingImagesSpider:
 if __name__ == '__main__':
     # 使用示例
     spider = BingImagesSpider(
-        keyword="OSI七层模型",
+        keyword="网络协议",
         amount=7,
-        img_type="diagram",
         proxy_list=["http://127.0.0.1:8080"]  # 如需代理可取消注释
     )
 

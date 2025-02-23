@@ -29,7 +29,16 @@ def get_api_keys_config(ini_config):
     return {
         'tongyi_api_key': ini_config.get('API_KEYS', 'tongyi_api_key', fallback=''),
         'zhipu_api_key': ini_config.get('API_KEYS', 'zhipu_api_key', fallback=''),
-        'openai_api_key': ini_config.get('API_KEYS', 'openai_api_key', fallback=''),
+        'deepseek_api_key': ini_config.get('API_KEYS', 'deepseek_api_key', fallback=''),
+        'moonshot_api_key': ini_config.get('API_KEYS', 'moonshot_api_key', fallback=''),
+    }
+
+
+def get_ppt_xh_config(ini_config):
+    """从ini配置中加载PPT讯飞配置"""
+    return {
+        'APPId': ini_config.get('PPT_XH', 'APPId'),
+        'APISecret': ini_config.get('PPT_XH', 'APISecret')
     }
 
 
@@ -40,4 +49,5 @@ ini_con = load_ini_config()
 config = {
     'api_keys': get_api_keys_config(ini_con),
     'database': get_database_config(ini_con),
+    'ppt_xh': get_ppt_xh_config(ini_con)
 }
