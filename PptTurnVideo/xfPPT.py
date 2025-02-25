@@ -3,10 +3,12 @@ import hashlib
 import hmac
 import base64
 import json
+import os
 import time
 
 import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder
+from pptx import Presentation
 
 class AIPPT():
 
@@ -172,9 +174,12 @@ class AIPPT():
                 done_pages = data.get("donePages", 0)
                 total_pages = data.get("totalPages", 1)
                 
-                # 进度百分比计算
-                progress = min(int(done_pages / total_pages * 100), 100)
-                print(f"📊 当前进度：{progress}% ({done_pages}/{total_pages}页)")
+                # 新增状态打印（整合ceshi.py的进度显示）
+                print(f"\n【PPT生成进度】{time.strftime('%Y-%m-%d %H:%M:%S')}")
+                print(f"📊 当前进度：{min(int(done_pages/total_pages*100), 100)}% ({done_pages}/{total_pages}页)")
+                print(f"🏗️ 结构生成: {data.get('pptStatus', 'unknown')}")
+                print(f"🖼️ 智能配图: {data.get('aiImageStatus', 'unknown')}")
+                print(f"📝 备注生成: {data.get('cardNoteStatus', 'unknown')}")
                 
                 # 最终状态判断条件优化
                 if all(status == "done" for status in [
@@ -182,7 +187,7 @@ class AIPPT():
                     data.get("aiImageStatus")
                 ]) and data.get("cardNoteStatus") == "done":
                     if (ppt_url := data.get("pptUrl")):
-                        print("✅ 所有任务已完成")
+                        print("\n✅ 所有任务已完成！")
                         return ppt_url
                     
                 # 当全部页面处理完成时，延长等待时间

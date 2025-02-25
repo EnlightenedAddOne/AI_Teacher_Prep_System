@@ -1,4 +1,7 @@
 from Create import *
+import json
+from datetime import datetime
+import re
 
 
 def import_exam_paper(session, json_data, exam_name:str):
@@ -40,7 +43,8 @@ def import_exam_paper(session, json_data, exam_name:str):
                 meta_data={
                     "source_exam_id": exam.exam_id,
                     "original_number": q["number"]
-                }
+                },
+                question_category=get_question_category(question_type)
             )
 
             # 3.3 处理选项
@@ -93,9 +97,14 @@ def convert_question_type(original_type):
         "填空题": "fill_blank",
         "判断题": "judgment",
         "简答题": "essay",
-        "应用计算题": "essay"  # 简答题和应用题统一处理
+        "应用计算题": "essay"
     }
     return type_map.get(original_type, "essay")
+
+def get_question_category(question_type):
+    """根据题型判断主客观"""
+    objective_types = ['single_choice', 'multi_choice', 'judgment']
+    return 'objective' if question_type in objective_types else 'subjective'
 
 def convert_difficulty(degree):
     """转换难度到数值"""
@@ -158,6 +167,152 @@ def verify_exam_import(session, exam_id):
         else:
             print("请检查数据库")
 
+
+def grade_objective_questions(session, record_id):
+    """自动批改客观题"""
+    record = session.get(StudentAnswerRecord, record_id)
+    details = session.query(QuestionAnswerDetail).join(ExamQuestion).join(Question).filter(
+        QuestionAnswerDetail.record_id == record_id,
+        Question.is_objective
+    )
+    
+    total_score = 0
+    for detail in details:
+        question = detail.exam_question.question
+        
+        print(f"\n处理题目：{detail.exam_question_id}")
+        print(f"题目类型：{question.question_type}")
+        
+        # 获取正确答案逻辑
+        if question.question_type in ['single_choice', 'judgment']:
+            correct_options = [opt.option_key for opt in question.options if opt.is_correct]
+            correct_answer = correct_options[0] if correct_options else ''
+            print(f"正确答案：{correct_answer}")
+        elif question.question_type == 'fill_blank':
+            # 处理填空批改
+            try:
+                correct_answer = question.correct_answer or ''
+                student_answer = detail.student_answer or ''
+                
+                # 分割答案进行比较
+                correct_parts = correct_answer.split('|||')
+                student_parts = student_answer.split('|||')
+                
+                correct_count = sum(1 for s, c in zip(student_parts, correct_parts) if s.strip() == c.strip())
+                detail.auto_score = round((correct_count / len(correct_parts)) * detail.exam_question.assigned_score, 1)
+                
+            except Exception as e:
+                print(f"填空批改错误：{str(e)}")
+                detail.auto_score = 0
+        else:
+            correct_answer = question.correct_answer
+            print(f"填空答案：{correct_answer}")
+        
+        print(f"学生答案：{detail.student_answer}")
+        
+        # 判分逻辑
+        if detail.student_answer.strip().upper() == correct_answer.strip().upper():
+            detail.auto_score = detail.exam_question.assigned_score
+        else:
+            detail.auto_score = 0
+            
+        detail.final_score = detail.auto_score
+        detail.status = 'auto_graded'
+        total_score += detail.final_score
+        print(f"得分：{detail.auto_score}")
+    
+    record.total_score = total_score
+    record.status = 'graded' if record.exam.require_manual_grading else 'submitted'
+    session.commit()
+
+
+def save_student_answers(session, answer_data):
+    """存储学生作答记录"""
+    try:
+        # 创建答题记录
+        new_record = StudentAnswerRecord(
+            student_id=answer_data['student_id'],
+            exam_id=answer_data['exam_id'],
+            start_time=datetime.now(),
+            status='in_progress'
+        )
+        session.add(new_record)
+        session.flush()  # 获取生成的record_id
+
+        # 处理每道题的答案
+        for answer in answer_data['answers']:
+            # print(answer)
+            answer_detail = process_single_answer(new_record.id, answer)
+            session.add(answer_detail)
+
+        session.commit()
+        return new_record.id
+    except Exception as e:
+        session.rollback()
+        raise e
+
+def process_single_answer(record_id, answer):
+    """处理单个题目答案"""
+    # 统一处理不同题型
+    handler = {
+        'single_choice': handle_choice,
+        'multi_choice': handle_choice,
+        'fill_blank': handle_fill_blank,
+        'true_false': handle_judgment,
+        'essay': handle_essay
+    }.get(answer['question_type'], handle_unknown)
+
+    return handler(record_id, answer)
+
+def handle_choice(record_id, answer):
+    """处理选择题型"""
+    return QuestionAnswerDetail(
+        record_id=record_id,
+        exam_question_id=answer['exam_question_id'],
+        student_answer=answer['answer_data']["selected_option"],
+        status='pending'
+    )
+
+def handle_fill_blank(record_id, answer):
+    """处理填空题（添加清洗）"""
+    # 清洗答案：移除空格和特殊符号
+    cleaned = [re.sub(r'\s+', '', ans).replace('^', '') for ans in answer['answer_data']['filled_answers']]
+    filled_answers = "|||".join(cleaned)
+    
+    return QuestionAnswerDetail(
+        record_id=record_id,
+        exam_question_id=answer['exam_question_id'],
+        student_answer=filled_answers,
+        status='pending'
+    )
+
+def handle_judgment(record_id, answer):
+    """处理判断题"""
+    return QuestionAnswerDetail(
+        record_id=record_id,
+        exam_question_id=answer['exam_question_id'],
+        student_answer=answer['answer_data']['selected_option'],
+        status='pending'
+    )
+
+def handle_essay(record_id, answer):
+    """处理主观题"""
+    return QuestionAnswerDetail(
+        record_id=record_id,
+        exam_question_id=answer['exam_question_id'],
+        student_answer=answer['answer_data']['content'],
+        status='pending'
+    )
+
+def handle_unknown(record_id, answer):
+    """处理未知题型（默认方法）"""
+    return QuestionAnswerDetail(
+        record_id=record_id,
+        exam_question_id=answer['exam_question_id'],
+        student_answer=json.dumps(answer['answer_data']),
+        status='pending',
+        feedback='未知题型需要人工批改'
+    )
 
 # def create_subject(session, name, parent_id=0):
 #     """创建学科"""

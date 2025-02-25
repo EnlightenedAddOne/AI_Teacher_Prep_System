@@ -40,7 +40,8 @@ def export_exam_to_json(session, exam_id):
                 "knowledge_points": [p.point_name for p in question.knowledge_points],
                 "subject": question.subject.subject_name,
                 "topic": question.topic,
-                "degree": reverse_convert_difficulty(question.difficulty)
+                "degree": reverse_convert_difficulty(question.difficulty),
+                "category": '客观题' if question.question_category == 'objective' else '主观题',
             }
 
             # 处理选择题/判断题的选项

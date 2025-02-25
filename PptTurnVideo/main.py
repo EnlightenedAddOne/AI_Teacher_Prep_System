@@ -2,13 +2,13 @@ import os
 from PptTurnVideo.creat_vido import natural_sort_key, generate_audio_files, create_video_from_images
 from PptTurnVideo.ppt_img import ppt_to_image
 from PptTurnVideo.ppt_txt import extract_speaker_notes
-from PptTurnVideo.xfPPT import main_create_ppt
+from PptTurnVideo.xfppt_2 import main_create_ppt
 
 
 # 示例调用
 def main():
     # 文件路径
-    output_folder = 'output_images1'
+    output_img_folder = r'D:\PROJECT\Python\test01\PptTurnVideo\output_images1'
     output_video_path = 'output_video.mp4'
     ppt_path = r'D:\PROJECT\Python\test01\PptTurnVideo\downloaded_file.pptx'
 
@@ -27,8 +27,7 @@ def main():
                 实际应用与常见问题
                 总结与对比
     """
-    # main_create_ppt(APPId, APISecret, ppt_outline,templateId,ppt_path) #ppt_path为生成ppt的存放路径
-
+    main_create_ppt(APPId,APISecret,ppt_outline,templateId,ppt_path)
 
     # 获取ppt演讲稿内容
     slide_texts = extract_speaker_notes(ppt_path)
@@ -37,13 +36,13 @@ def main():
     """**************这里应该调用ai对演讲稿进行润色**************"""
 
     # 将ppt转换为一张张图片
-    ppt_to_image(ppt_path, output_folder)
+    ppt_to_image(ppt_path, output_img_folder)
 
     # 图片路径列表
     # 应用排序
     image_paths = sorted(
-        [os.path.join(output_folder, fname)                                                                                                      
-         for fname in os.listdir(output_folder)
+        [os.path.join(output_img_folder, fname)
+         for fname in os.listdir(output_img_folder)
          if fname.lower().endswith('.png')],
         key=natural_sort_key
     )
@@ -56,7 +55,7 @@ def main():
         print("No image files found in the specified folder.")
     else:
         # 生成语音文件
-        audio_clips = generate_audio_files(slide_texts, output_folder)
+        audio_clips = generate_audio_files(slide_texts, output_img_folder)
 
         # 创建视频
         create_video_from_images(image_paths, audio_clips, output_video_path)

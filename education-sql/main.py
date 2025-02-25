@@ -211,15 +211,15 @@ test_questions = '''
             "content": "若函数f(x) = |x|，则f'(0)存在。",
             "options": [
                 {
-                    "key": "√",
+                    "key": "T",
                     "value": "正确"
                 },
                 {
-                    "key": "×",
+                    "key": "F",
                     "value": "错误"
                 }
             ],
-            "correct_answer": "×",
+            "correct_answer": "F",
             "explanation": "绝对值函数在x=0处不可导，因为左右导数不相等。",
             "knowledge_points": ["绝对值函数", "导数"],
             "subject": "数学",
@@ -234,15 +234,15 @@ test_questions = '''
             "content": "若函数f(x) = e^x，则f'(x) = e^x。",
             "options": [
                 {
-                    "key": "√",
+                    "key": "T",
                     "value": "正确"
                 },
                 {
-                    "key": "×",
+                    "key": "F",
                     "value": "错误"
                 }
             ],
-            "correct_answer": "√",
+            "correct_answer": "T",
             "explanation": "根据指数函数的导数公式，f'(x) = e^x。",
             "knowledge_points": ["指数函数", "导数"],
             "subject": "数学",
@@ -257,15 +257,15 @@ test_questions = '''
             "content": "若函数f(x) = sin(x)，则f'(x) = cos(x)。",
             "options": [
                 {
-                    "key": "√",
+                    "key": "T",
                     "value": "正确"
                 },
                 {
-                    "key": "×",
+                    "key": "F",
                     "value": "错误"
                 }
             ],
-            "correct_answer": "√",
+            "correct_answer": "T",
             "explanation": "根据三角函数的导数公式，f'(x) = cos(x)。",
             "knowledge_points": ["三角函数", "导数"],
             "subject": "数学",
@@ -280,15 +280,15 @@ test_questions = '''
             "content": "若函数f(x) = ln(x)，则f'(x) = 1/x。",
             "options": [
                 {
-                    "key": "√",
+                    "key": "T",
                     "value": "正确"
                 },
                 {
-                    "key": "×",
+                    "key": "F",
                     "value": "错误"
                 }
             ],
-            "correct_answer": "√",
+            "correct_answer": "T",
             "explanation": "根据对数函数的导数公式，f'(x) = 1/x。",
             "knowledge_points": ["对数函数", "导数"],
             "subject": "数学",
@@ -367,20 +367,20 @@ def main():
     # delete_question(session,2)
     # delete_exam_with_others(session,1)
 
-    # 存入数据库后测试打印
-    exported = export_exam_to_json(session, 1)
-    print(type(exported))
-    print(exported)
-    verify_exam_import(session,1)
+    # # 存入数据库后测试打印
+    # exported = export_exam_to_json(session, 1)
+    # print(type(exported))
+    # print(exported)
+    # verify_exam_import(session,1)
 
-    # # 将JSON字符串转换为Python字典
-    # data_dict = json.loads(test_questions)
-    # # 执行导入
-    # exam_id = import_exam_paper(session, data_dict,'测试试卷')
-    #
-    # # 导出试卷（假设已知试卷ID为1）
-    # exam_data = export_exam_to_json(session, exam_id)
-    # print(exam_data)
+    # 将JSON字符串转换为Python字典
+    data_dict = json.loads(test_questions)
+    # 执行导入
+    exam_id = import_exam_paper(session, data_dict,'测试试卷')
+
+    # 导出试卷（假设已知试卷ID为1）
+    exam_data = export_exam_to_json(session, exam_id)
+    print(exam_data)
 
     #
     # if exam_id:
