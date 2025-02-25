@@ -6,16 +6,16 @@ from typing import Dict, Any, Optional
 class ResourceRecommendationRequest(BaseModel):
     """资源推荐请求模型"""
     require_books: bool = Field(default=True, description="是否需要推荐书籍")
-    book_count: int = Field(default=3, description="推荐书籍数量", ge=1, le=5)
+    book_count: int = Field(default=3, ge=0, le=20, description="推荐书籍数量")
     require_papers: bool = Field(default=True, description="是否需要推荐论文")
-    paper_count: int = Field(default=3, description="推荐论文数量", ge=1, le=5)
+    paper_count: int = Field(default=3, ge=0, le=20, description="推荐论文数量")
     require_videos: bool = Field(default=True, description="是否需要推荐视频")
-    video_count: int = Field(default=3, description="推荐视频数量", ge=1, le=5)
+    video_count: int = Field(default=3, ge=0, le=20, description="推荐视频数量")
 
     @field_validator('*', mode='before')
     def validate_counts(cls, v, info: ValidationInfo):
-        if info.field_name and info.field_name.endswith('_count') and v < 1:
-            raise ValueError(f"{info.field_name}不能小于1")
+        if info.field_name and info.field_name.endswith('_count') and v < 0:
+            raise ValueError(f"{info.field_name}不能小于0")
         return v
 
 
@@ -27,17 +27,14 @@ class TeachingDesignRequest(BaseModel):
     duration: str
     grade: str
     with_images: bool = Field(default=False, description="是否需要生成图片")
-    image_count: int = Field(default=5, ge=1, le=20, description="图片数量范围1-20")
+    image_count: int = Field(default=5, ge=0, le=20, description="图片数量")
     ppt_turn_video: bool = Field(default=False, description="是否需要将生成的PPT转换为视频")
     resource_recommendation: Optional[ResourceRecommendationRequest] = None
 
     @field_validator('image_count')
     def validate_image_count(cls, v, info: ValidationInfo):
-        values = info.data
-        if values.get('with_images') and v < 1:
-            raise ValueError("当需要图片时，图片数量至少为1")
-        if not values.get('with_images') and v > 0:
-            raise ValueError("未选择需要图片时，图片数量应设为0")
+        if v < 0:
+            raise ValueError("图片数量不能小于0")
         return v
 
 

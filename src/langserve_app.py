@@ -71,7 +71,7 @@ async def generate_teaching_design_endpoint(request: TeachingDesignRequest):
         pdf_urls = content_to_pdf([content], ["教学设计"], ["teaching_design.pdf"])
 
         # 如果需要图片，调用爬虫
-        if request.with_images:
+        if request.with_images and request.image_count > 0:
             try:
                 spider = BingImagesSpider(
                     keyword=request.topic,
@@ -110,9 +110,9 @@ async def generate_teaching_design_endpoint(request: TeachingDesignRequest):
         # 如果需要推荐资源
         if request.resource_recommendation:
             try:
-
                 # 获取书籍和论文推荐
-                if request.resource_recommendation.require_books or request.resource_recommendation.require_papers:
+                if (request.resource_recommendation.require_books and request.resource_recommendation.book_count > 0) or \
+                   (request.resource_recommendation.require_papers and request.resource_recommendation.paper_count > 0):
                     # 初始化资源推荐器
                     recommender = ResourceRecommender()
                     recommendations = recommender.recommend_books_and_papers(
@@ -122,7 +122,7 @@ async def generate_teaching_design_endpoint(request: TeachingDesignRequest):
                     )
 
                     # 转换书籍推荐为响应模型
-                    if request.resource_recommendation.require_books:
+                    if request.resource_recommendation.require_books and request.resource_recommendation.book_count > 0:
                         books = [
                             RecommendedBook(
                                 title=book['title'],
@@ -134,7 +134,7 @@ async def generate_teaching_design_endpoint(request: TeachingDesignRequest):
                         ]
 
                     # 转换论文推荐为响应模型
-                    if request.resource_recommendation.require_papers:
+                    if request.resource_recommendation.require_papers and request.resource_recommendation.paper_count > 0:
                         papers = [
                             RecommendedPaper(
                                 title=paper['title'],
@@ -146,7 +146,7 @@ async def generate_teaching_design_endpoint(request: TeachingDesignRequest):
                         ]
 
                 # 获取视频推荐
-                if request.resource_recommendation.require_videos:
+                if request.resource_recommendation.require_videos and request.resource_recommendation.video_count > 0:
                     video_results = get_bilibili_videos(
                         course_name=request.topic,
                         video_count=request.resource_recommendation.video_count
@@ -168,11 +168,11 @@ async def generate_teaching_design_endpoint(request: TeachingDesignRequest):
             design_id=generate_design_id(),
             content=content,
             teach_pdf_url=pdf_urls[0],
-            images=images if request.with_images else None,
+            images=images if request.with_images and request.image_count > 0 else None,
             ppt_video_path=video_path if request.ppt_turn_video else None,
-            books=books if request.resource_recommendation and request.resource_recommendation.require_books else None,
-            papers=papers if request.resource_recommendation and request.resource_recommendation.require_papers else None,
-            videos=videos if request.resource_recommendation and request.resource_recommendation.require_videos else None
+            books=books if request.resource_recommendation and request.resource_recommendation.require_books and request.resource_recommendation.book_count > 0 else None,
+            papers=papers if request.resource_recommendation and request.resource_recommendation.require_papers and request.resource_recommendation.paper_count > 0 else None,
+            videos=videos if request.resource_recommendation and request.resource_recommendation.require_videos and request.resource_recommendation.video_count > 0 else None
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
