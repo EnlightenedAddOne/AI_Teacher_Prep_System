@@ -26,9 +26,9 @@ class TeachingDesignRequest(BaseModel):
     goals: str
     duration: str
     grade: str
-    with_images: bool = Field(default=False)
+    with_images: bool = Field(default=False, description="是否需要生成图片")
     image_count: int = Field(default=5, ge=1, le=20, description="图片数量范围1-20")
-    ppt_turn_video: bool = Field(default=False)
+    ppt_turn_video: bool = Field(default=False, description="是否需要将生成的PPT转换为视频")
     resource_recommendation: Optional[ResourceRecommendationRequest] = None
 
     @field_validator('image_count')

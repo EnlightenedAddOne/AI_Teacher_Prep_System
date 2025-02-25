@@ -102,56 +102,6 @@ answer_explanation_prompt = PromptTemplate(
 )
 
 
-def pptx_prompt() -> str:
-    """PPT生成提示词模板"""
-    return '''你是一位PPT设计专家。请根据以下教学设计内容生成PPT结构和配音文案。要求如下：
-1. 生成一个包含封面和多个章节的PPT结构
-2. 每个章节包含标题、要点和讲解文案
-3. 确保内容逻辑清晰，适合教学使用
-4. 输出格式为JSON，包含以下字段：
-   - title: PPT标题
-   - title_narration: 封面讲解文案
-   - sections: 章节列表，每个章节包含：
-     - title: 章节标题
-     - points: 章节要点列表
-     - narration: 章节讲解文案
-
-示例格式：
-{
-    "title": "PPT标题",
-    "title_narration": "封面讲解文案",
-    "sections": [
-        {
-            "title": "章节标题1",
-            "points": ["要点1", "要点2"],
-            "narration": "章节讲解文案1"
-        },
-        {
-            "title": "章节标题2",
-            "points": ["要点1", "要点2"],
-            "narration": "章节讲解文案2"
-        }
-    ]
-}
-
-教学设计内容：
-{content}'''
-
-
-ppt_prompt = PromptTemplate(
-    input_variables=["content"],
-    template=pptx_prompt()
-)
-
-
-def image_prompt():
-    return None
-
-
-def video_prompt():
-    return None
-
-
 # 在线测试题目生成的LangChain Prompt模板
 def create_online_test_template() -> str:
     """
@@ -214,128 +164,64 @@ online_test_prompt = PromptTemplate(
 )
 
 # 资源推荐提示模板
-book_recommendation_prompt = PromptTemplate(
-    input_variables=["topic", "count"],
-    template="""作为图书推荐专家，请推荐{count}本关于'{topic}'的权威教材或参考书籍。
-要求：
-1. 必须包含以下字段：title（书名）、authors（作者列表）、publisher（出版社）、publication_year（出版年份）
-2. 优先推荐近5年的出版物
-3. 使用严格JSON格式返回，结构示例：
-{{"books": [
-  {{
-    "title": "计算机网络（第7版）",
-    "authors": ["谢希仁"],
-    "publisher": "电子工业出版社",
-    "publication_year": 2023,
-    "isbn": "9787121373133"
-  }}
-]}}"""
-)
-
-paper_recommendation_prompt = PromptTemplate(
-    input_variables=["topic", "count"],
-    template="""作为学术推荐专家，请推荐{count}篇关于'{topic}'的核心期刊论文。
-要求：
-1. 必须包含以下字段：title（标题）、authors（作者列表）、journal（期刊名称）、publication_year（发表年份）
-2. 优先推荐近3年的高被引论文
-3. 使用严格JSON格式返回，结构示例：
-{{"papers": [
-  {{
-    "title": "TCP拥塞控制算法研究",
-    "authors": ["李明", "王强"],
-    "journal": "计算机学报",
-    "publication_year": 2022,
-    "doi": "10.1234/12345678"
-  }}
-]}}"""
-)
-
-video_recommendation_prompt = PromptTemplate(
-    input_variables=["topic", "count"],
-    template="""# 联网搜索指令
-请使用web_search函数获取实时数据！
-
-# 搜索参数
-search_query: "{topic} 教学视频"
-max_results: 10
-
-# 筛选标准
-1. 平台：哔哩哔哩
-2. 发布时间：最近6个月
-3. 播放量 ≥ 2万
-4. 时长5-30分钟
-
-# 输出格式
-{{
-  "videos": [
-    {{
-      "title": "视频标题（必须包含'{topic}'）",
-      "url": "https://www.bilibili.com/video/BVxxx",
-      "duration": "MM:SS",
-      "view_count": "数字+万",
-      "uploader": "认证机构名称",
-      "score": 0-100
-    }}
-  ]
-}}"""
-)
-
-
 integrated_recommendation_prompt = PromptTemplate(
-    input_variables=["topic", "book_count", "paper_count", "video_count"],
+    input_variables=["topic", "book_count", "paper_count"],
     template="""请使用web_search工具搜索并推荐以下教育资源：
 
 主题：{topic}
-需求：
-- {book_count}本相关书籍
-- {paper_count}篇学术论文
-- {video_count}个教学视频
 
-搜索关键词：
-1. "{topic} 教材 书籍 豆瓣"
-2. "{topic} 论文 知网 核心期刊"
-3. "{topic} 教学视频 bilibili"
+1. 书籍推荐要求：
+   - 需要推荐 {book_count} 本书
+   - 优先推荐近5年出版的教材或专业书籍
+   - 必须包含：书名、作者、出版社、出版年份、ISBN号（如有）
+   - 必须使用web_search验证信息准确性
+   - 优先选择：
+     * 知名出版社出版的教材
+     * 被广泛使用的经典著作
+     * 评分较高的专业书籍
 
-请按以下JSON格式返回结果：
+2. 论文推荐要求：
+   - 需要推荐 {paper_count} 篇论文
+   - 优先推荐近3年发表的核心期刊论文
+   - 必须包含：标题、作者、期刊名称、发表年份、DOI（如有）
+   - 必须使用web_search验证信息准确性
+   - 优先选择：
+     * 高引用量的论文
+     * 核心期刊发表的论文
+     * 最新研究成果
+
+请按以下JSON格式返回：
 {{
-  "recommendations": {{
     "books": [
-      {{
-        "title": "Python编程：从入门到实践",  # 示例
-        "author": "埃里克·马瑟斯",
-        "publisher": "人民邮电出版社",
-        "publish_year": "2023",
-        "douban_score": "9.2"
-      }}
+        {{
+            "title": "书名",
+            "author": "作者",
+            "publisher": "出版社",
+            "year": "出版年份",
+            "isbn": "ISBN号（如有）"
+        }}
     ],
     "papers": [
-      {{
-        "title": "Python程序设计课程教学改革与实践",  # 示例
-        "authors": ["张三", "李四"],
-        "journal": "计算机教育",
-        "publish_year": "2023",
-        "citation_count": "12"
-      }}
-    ],
-    "videos": [
-      {{
-        "title": "Python基础教程完整版",  # 示例
-        "url": "https://www.bilibili.com/video/xxx",
-        "duration_minutes": "45",
-        "view_count": "12.5万",
-        "platform": "bilibili"
-      }}
+        {{
+            "title": "论文标题",
+            "author": "作者",
+            "journal": "期刊名称",
+            "year": "发表年份",
+            "doi": "DOI号（如有）"
+        }}
     ]
-  }}
 }}
 
 注意事项：
 1. 必须使用web_search工具获取真实数据
-2. 所有数值必须返回字符串格式
-3. 确保资源质量（高评分、高引用、高播放量）
-4. 优先推荐近两年的资源"""
+2. 所有信息必须来自搜索结果
+3. 不要生成虚假信息
+4. 优先推荐近期出版或发表的资源
+5. 宁可推荐少也不要推荐虚假信息
+6. 如果搜索失败，返回空数组而不是虚构数据
+7. 确保所有推荐的资源都与主题高度相关
+8. 对于每个推荐项，都需要通过web_search验证其真实性"""
 )
-
 
 # 演讲稿优化提示词
 text_polishing_prompt = PromptTemplate(
@@ -376,7 +262,6 @@ text_polishing_prompt = PromptTemplate(
         """
 )
 
-
 # PPT大纲生成提示词
 ppt_outline_prompt = PromptTemplate(
     input_variables=["subject", "topic"],
@@ -395,6 +280,3 @@ ppt_outline_prompt = PromptTemplate(
 
 """
 )
-
-
-

@@ -55,23 +55,46 @@ def create_dynamic_template(exercise_config):
 
 
 def generate_answers_and_explanations(subject, topic, questions, api_key):
-    llm = LLMFactory.initialize_tongyi(api_key)
-    prompt = answer_explanation_prompt.format(
-        subject=subject, topic=topic, questions=questions
-    )
-    return llm.invoke(prompt)
+    """生成答案和解析"""
+    # 初始化API
+    LLMFactory.initialize_tongyi(api_key)
+    
+    # 构建消息
+    messages = [{
+        "role": "user",
+        "content": answer_explanation_prompt.format(
+            subject=subject, topic=topic, questions=questions
+        )
+    }]
+    
+    # 调用API
+    response = LLMFactory.call_tongyi(messages, model_name="qwen-plus-2025-01-25")
+    return response.get('content', '') if response else ''
 
 
 def generate_exercises(subject, topic, degree, exercise_config, api_key):
-    llm = LLMFactory.initialize_tongyi(api_key)
+    """生成练习题"""
+    # 初始化API
+    LLMFactory.initialize_tongyi(api_key)
 
     # 生成模板和输入数据
     template, input_data = create_dynamic_template(exercise_config)
 
-    prompt = exercise_prompt.format(
-        subject=subject, topic=topic, degree=degree, **exercise_config, **input_data, template=template
-    )
-    exercises = llm.invoke(prompt)
+    # 构建消息
+    messages = [{
+        "role": "user",
+        "content": exercise_prompt.format(
+            subject=subject, topic=topic, degree=degree,
+            **exercise_config, **input_data, template=template
+        )
+    }]
+
+    # 调用API生成练习题
+    exercises_response = LLMFactory.call_tongyi(messages, model_name="qwen-plus-2025-01-25")
+    exercises = exercises_response.get('content', '') if exercises_response else ''
+
+    if not exercises:
+        return '', ''
 
     # 生成答案和解析
     answers_and_explanations = generate_answers_and_explanations(subject, topic, exercises, api_key)

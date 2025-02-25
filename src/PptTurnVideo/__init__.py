@@ -2,7 +2,7 @@ from .creat_video import natural_sort_key, generate_audio_files, create_video_fr
 from .ppt_img import ppt_to_image
 from .ppt_txt import extract_speaker_notes
 from .xfPPT import main_create_ppt
-from .Refine_txt import ppt_outline
+from .Polish_Outline import ppt_outline
 
 __all__ = [
     'natural_sort_key',

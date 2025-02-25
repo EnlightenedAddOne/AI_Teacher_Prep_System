@@ -1,11 +1,10 @@
+import os
 import re
 import time
-import edge_tts
-import asyncio
-from moviepy import AudioFileClip, ImageSequenceClip, concatenate_videoclips, concatenate_audioclips
-import os
-import numpy as np
 
+import edge_tts
+import numpy as np
+from moviepy import AudioFileClip, ImageSequenceClip, concatenate_audioclips
 
 # 常用中文声线：
 '''
@@ -37,7 +36,7 @@ def create_silent_audio(duration, output_file):
     """生成指定时长的静音音频文件"""
     # 创建一个持续时间为duration秒的静音音频数组
     sample_rate = 44100
-    samples = np.zeros(int(duration * sample_rate))
+    np.zeros(int(duration * sample_rate))
     
     # 使用 moviepy 创建音频剪辑
     audio = ImageSequenceClip([np.zeros((1, 1, 3))], fps=1).set_duration(duration)

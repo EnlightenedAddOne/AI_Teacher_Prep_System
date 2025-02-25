@@ -3,13 +3,12 @@ import logging
 import os
 from pathlib import Path
 import datetime
-import time
 
 from fastapi import FastAPI, HTTPException, APIRouter
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from Image_crawling import BingImagesSpider
+from Multimedia import BingImagesSpider, ResourceRecommender, get_bilibili_videos
 from Online_Test import generate_online_test
 from configs import config
 from education_sql import Session, export_exam_to_json
@@ -17,11 +16,11 @@ from education_sql import Session, export_exam_to_json
 from exercise_generation import generate_exercises
 from models import (TeachingDesignRequest, ExerciseRequest,
                     TeachingDesignResponse, ExerciseResponse,
-                    OnlineTestRequest, OnlineTestResponse, TeachingImage)
+                    OnlineTestRequest, OnlineTestResponse, TeachingImage,
+                    RecommendedBook, RecommendedPaper, RecommendedVideo)
 from pdf_generator import content_to_pdf
 from teaching_design import generate_teaching_design
 from utils import setup_cors  # 导入工具函数
-from resource_recommender import ResourceRecommender
 from ppt_turn_video import create_ppt_videos
 
 app = FastAPI()
@@ -31,12 +30,12 @@ setup_cors(app)
 
 # 配置静态文件服务
 app.mount("/static-images", StaticFiles(directory=r'E:\AIdev\LangChain\host_2\Langchain\output\Images'), name="images")
-app.mount("/ppt-videos", StaticFiles(directory=r'E:\AIdev\LangChain\host_2\Langchain\output\Ppt-turn-video'), name="ppt-videos")
+app.mount("/ppt-videos", StaticFiles(directory=r'E:\AIdev\LangChain\host_2\Langchain\output\Ppt-turn-video'),
+          name="ppt-videos")
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
-recommender = ResourceRecommender()
 
 
 # 在路由处理函数前添加ID生成函数
@@ -53,11 +52,15 @@ async def generate_teaching_design_endpoint(request: TeachingDesignRequest):
     deepseek_api_key = config['api_keys'].get('deepseek_api_key')
     images = []
     video_path = None
+    books = []
+    papers = []
+    videos = []
 
     if not tongyi_api_key:
         raise HTTPException(status_code=500, detail="通义API密钥未配置")
     if not deepseek_api_key:
         raise HTTPException(status_code=500, detail="Deepseek API密钥未配置")
+
     try:
         # 生成教学设计内容
         content = generate_teaching_design(
@@ -97,20 +100,79 @@ async def generate_teaching_design_endpoint(request: TeachingDesignRequest):
                     subject=request.subject,
                     topic=request.topic
                 )
-                
+
                 # 设置相对路径用于返回
                 video_path = f"/ppt-videos/{os.path.basename(os.path.dirname(output_video_path))}/output.mp4"
 
             except Exception as e:
                 logger.error(f"视频生成失败: {str(e)}")
-                # 视频生成失败不影响教学设计的返回
+
+        # 如果需要推荐资源
+        if request.resource_recommendation:
+            try:
+
+                # 获取书籍和论文推荐
+                if request.resource_recommendation.require_books or request.resource_recommendation.require_papers:
+                    # 初始化资源推荐器
+                    recommender = ResourceRecommender()
+                    recommendations = recommender.recommend_books_and_papers(
+                        topic=request.topic,
+                        book_count=request.resource_recommendation.book_count if request.resource_recommendation.require_books else 0,
+                        paper_count=request.resource_recommendation.paper_count if request.resource_recommendation.require_papers else 0
+                    )
+
+                    # 转换书籍推荐为响应模型
+                    if request.resource_recommendation.require_books:
+                        books = [
+                            RecommendedBook(
+                                title=book['title'],
+                                authors=[book['author']],
+                                publisher=book['publisher'],
+                                publication_year=book['year'],
+                                isbn=book.get('isbn')
+                            ) for book in recommendations.get('books', [])
+                        ]
+
+                    # 转换论文推荐为响应模型
+                    if request.resource_recommendation.require_papers:
+                        papers = [
+                            RecommendedPaper(
+                                title=paper['title'],
+                                authors=[paper['author']],
+                                journal=paper['journal'],
+                                publication_year=paper['year'],
+                                doi=paper.get('doi')
+                            ) for paper in recommendations.get('papers', [])
+                        ]
+
+                # 获取视频推荐
+                if request.resource_recommendation.require_videos:
+                    video_results = get_bilibili_videos(
+                        course_name=request.topic,
+                        video_count=request.resource_recommendation.video_count
+                    )
+                    videos = [
+                        RecommendedVideo(
+                            title=video['title'],
+                            platform="Bilibili",
+                            url=video['url'],
+                            duration=video['duration'],
+                            view_count=video['view_count']
+                        ) for video in video_results
+                    ]
+
+            except Exception as e:
+                logger.error(f"资源推荐失败: {str(e)}")
 
         return TeachingDesignResponse(
             design_id=generate_design_id(),
             content=content,
             teach_pdf_url=pdf_urls[0],
             images=images if request.with_images else None,
-            ppt_video_path=video_path
+            ppt_video_path=video_path if request.ppt_turn_video else None,
+            books=books if request.resource_recommendation and request.resource_recommendation.require_books else None,
+            papers=papers if request.resource_recommendation and request.resource_recommendation.require_papers else None,
+            videos=videos if request.resource_recommendation and request.resource_recommendation.require_videos else None
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -1,6 +1,6 @@
 from pptx import Presentation
 import re
-from src.PptTurnVideo.Refine_txt import text_polishing
+from src.PptTurnVideo.Polish_Outline import text_polishing
 from src.configs import config
 
 

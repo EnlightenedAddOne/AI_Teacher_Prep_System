@@ -14,26 +14,27 @@ class TeachingImage(BaseModel):
 
 
 class RecommendedBook(BaseModel):
-    title: str
-    authors: List[str]
-    publisher: str
-    publication_year: int
-    isbn: Optional[str]
+    title: str  # 书名
+    authors: List[str]  # 作者
+    publisher: str  # 出版社
+    publication_year: int  # 出版年份
+    isbn: Optional[str]  # 国际标准书号
 
 
 class RecommendedPaper(BaseModel):
-    title: str
-    authors: List[str]
-    journal: str
-    publication_year: int
-    doi: Optional[str]
+    title: str  # 论文标题
+    authors: List[str]  # 作者
+    journal: str  # 期刊名称
+    publication_year: int  # 发表年份
+    doi: Optional[str]  # 数字对象标识符（Digital Object Identifier）
 
 
 class RecommendedVideo(BaseModel):
-    title: str
-    platform: str
-    url: str
-    duration: Optional[str]
+    title: str  # 视频标题
+    platform: str  # 平台名称
+    url: str  # 视频链接
+    duration: Optional[str]  # 视频时长
+    view_count: Optional[str]  # 播放量字段
 
 
 class TeachingDesignResponse(BaseModel):
@@ -43,10 +44,10 @@ class TeachingDesignResponse(BaseModel):
     images: Optional[List[TeachingImage]] = None
     ppt_video_path: Optional[str] = None  # ppt转视频的输出路径
     books: Optional[List[RecommendedBook]] = None
-    videos: Optional[List[RecommendedVideo]] = None
     papers: Optional[List[RecommendedPaper]] = None
+    videos: Optional[List[RecommendedVideo]] = None
     design_id: str
-    
+
 
 class ExerciseResponse(BaseModel):
     """练习题响应"""
