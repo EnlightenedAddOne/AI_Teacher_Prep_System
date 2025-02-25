@@ -1,4 +1,5 @@
--- auto-generated definition
+create database if not exists ai_demo;
+use ai_demo;
 create table users
 (
     id       bigint auto_increment
