@@ -210,17 +210,31 @@
               v-if="teachingDesignResponse.images"
               class="image-container"
             >
-              <h3>教学设计图片</h3>
-              <ul>
-                <li
-                  v-for="image in teachingDesignResponse.images"
-                  :key="image.md5"
-                >
-                  <a :href="extractImageUrl(image.url)" target="_blank">
-                    查看图片 {{ image.title }}
-                  </a>
-                </li>
-              </ul>
+            <h3>教学设计图片</h3>
+                <ul>
+                  <li
+                    v-for="image in teachingDesignResponse.images"
+                    :key="image.md5"
+                  >
+                    <!-- 图片展示 -->
+                    <img
+                      :src="extractImageUrl(image.url)"
+                      :alt="image.title"
+                      class="design-image"
+                    />
+                    <!-- 点击链接 -->
+                    <a :href="extractImageUrl(image.url)" target="_blank">
+                      查看图片 {{ image.title }}
+                    </a>
+                    <el-button
+                    type="success"
+                    @click="downloadImage(image.url)"
+                    class="download-image-button"
+                    >
+                      下载图片
+                    </el-button>
+                  </li>
+                </ul>
             </div>
             <!-- PPT 视频展示 -->
             <div
@@ -338,7 +352,7 @@ const handleWithImagesChange = () => {
 
 const handlePptVideoChange = () => {
   if (!teachingDesignRequest.value.ppt_turn_video) {
-    // 无需设置默认值，因为已经初始化为false
+
   }
 };
 
@@ -431,6 +445,15 @@ const formatMarkdown = (response: TeachingDesignResponse) => {
     return marked(response.content);
   }
   return '';
+};
+
+const downloadImage = (url: string) => {
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = url.split('/').pop() || 'image'; // 设置下载文件名
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };
 </script>
 
@@ -561,5 +584,17 @@ const formatMarkdown = (response: TeachingDesignResponse) => {
 
 .resource-container {
   margin-top: 20px;
+}
+
+.design-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 10px;
+}
+
+.download-image-button {
+  margin-left: 10px;
 }
 </style>
