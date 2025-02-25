@@ -236,7 +236,7 @@ if __name__ == "__main__":
         recommender = ResourceRecommender()
         
         # 测试参数
-        topic = "人工智能"  # 只测试一个主题
+        topic = "网络协议"  # 只测试一个主题
         book_count = 3      # 推荐3本书
         paper_count = 4     # 推荐4篇论文
         

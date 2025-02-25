@@ -126,13 +126,16 @@ class LLMFactory:
 
     @staticmethod
     def call_moonshot_with_tools(client, messages: List[Dict[str, Any]], tools: List[Dict[str, Any]], 
-                                model: str = "moonshot-v1-128k", temperature: float = 0.3) -> Dict[str, Any]:
+                                model: str = "kimi-latest", temperature: float = 0.3) -> Dict[str, Any]:
         """
         调用 Moonshot API（带工具调用功能）
         :param client: Moonshot客户端实例
         :param messages: 消息列表
         :param tools: 工具列表
         :param model: 模型名称
+            - moonshot-v1-auto: 动态模型，自动选择最优的模型版本
+            - kimi-latest: 最新的大语言模型
+            - moonshot-v1-128k: 固定上下文长度为128k的模型
         :param temperature: 温度参数
         :return: API响应
         """

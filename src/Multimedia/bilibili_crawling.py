@@ -65,11 +65,8 @@ def get_bilibili_videos(course_name: str, video_count: int = 5) -> List[Dict[str
 
     # 固定的搜索关键词后缀列表
     SEARCH_SUFFIXES = [
-        "入门教程",
-        "学习课程",
-        "基础教程",
-        "视频教程",
-        "零基础教程"
+        "详解",
+        "视频教程"
     ]
 
     headers = {
@@ -83,9 +80,9 @@ def get_bilibili_videos(course_name: str, video_count: int = 5) -> List[Dict[str
 
     for attempt in range(MAX_RETRIES):
         try:
-            # 构建搜索关键词（课程名称 + 所有后缀 + bilibili）
+            # 构建搜索关键词（课程名称 + 所有后缀）
             # 使用空格连接所有关键词，这样B站会对所有关键词进行匹配
-            keyword = f"{course_name} {' '.join(SEARCH_SUFFIXES)} bilibili"
+            keyword = f"{course_name}{' '.join(SEARCH_SUFFIXES)}"
             print(f"使用搜索关键词: {keyword}")
             
             encoded_keyword = quote(keyword)
@@ -183,7 +180,7 @@ def main():
     print("=== 开始搜索B站视频 ===")
 
     # 搜索课程名称
-    course_name = "高等数学  微分方程"
+    course_name = "网络协议"
     print(f"\n课程名称: {course_name}")
 
     # 获取视频列表，指定获取3个视频
