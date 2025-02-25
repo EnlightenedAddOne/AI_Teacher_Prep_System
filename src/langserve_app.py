@@ -30,8 +30,7 @@ setup_cors(app)
 
 # 配置静态文件服务
 app.mount("/static-images", StaticFiles(directory=r'E:\AIdev\LangChain\host_2\Langchain\output\Images'), name="images")
-app.mount("/ppt-videos", StaticFiles(directory=r'E:\AIdev\LangChain\host_2\Langchain\output\Ppt-turn-video'),
-          name="ppt-videos")
+app.mount("/ppt-videos", StaticFiles(directory=r'E:\AIdev\LangChain\host_2\Langchain\output\Ppt-turn-video'), name="ppt-videos")
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +97,8 @@ async def generate_teaching_design_endpoint(request: TeachingDesignRequest):
                 output_video_path = await create_ppt_videos(
                     api_key=deepseek_api_key,
                     subject=request.subject,
-                    topic=request.topic
+                    topic=request.topic,
+                    voice_type=request.voice_type  # 直接传递中文声线名称
                 )
 
                 # 设置相对路径用于返回

@@ -112,7 +112,7 @@ def ppt_to_image(ppt_path, image_folder):
                 poppler_path = r"E:\AIdev\LangChain\poppler-24.08.0\Library\bin"  # 根据实际安装路径修改
                 if not os.path.exists(poppler_path):
                     print("请先安装poppler-windows：")
-                    print("下载地址：https://blog.alivate.com.au/poppler-windows/")
+                    print("下载地址：https://github.com/oschwartz10612/poppler-windows/releases/tag/v24.08.0-0")
                     return
                 
                 cmd = [

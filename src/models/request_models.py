@@ -29,6 +29,10 @@ class TeachingDesignRequest(BaseModel):
     with_images: bool = Field(default=False, description="是否需要生成图片")
     image_count: int = Field(default=5, ge=0, le=20, description="图片数量")
     ppt_turn_video: bool = Field(default=False, description="是否需要将生成的PPT转换为视频")
+    voice_type: str = Field(
+        default="年轻男声",
+        description="PPT转视频时使用的中文声线（可选：年轻男声、温暖女声、播音男声、甜美女声、活泼女声）"
+    )
     resource_recommendation: Optional[ResourceRecommendationRequest] = None
 
     @field_validator('image_count')

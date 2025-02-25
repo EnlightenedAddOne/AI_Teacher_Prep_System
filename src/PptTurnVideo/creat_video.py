@@ -6,22 +6,42 @@ import edge_tts
 import numpy as np
 from moviepy import AudioFileClip, ImageSequenceClip, concatenate_audioclips
 
-# 常用中文声线：
-'''
-zh-CN-YunxiNeural    - 年轻男声（默认）
-zh-CN-YunxiaNeural   - 温暖女声
-zh-CN-YunyangNeural  - 播音男声
-zh-CN-XiaoxiaoNeural - 甜美女声
-zh-CN-XiaoyiNeural   - 活泼女声
-'''
+# 声线映射字典
+VOICE_TYPE_MAPPING = {
+    "年轻男声": "zh-CN-YunxiNeural",
+    "温暖女声": "zh-CN-YunxiaNeural",
+    "播音男声": "zh-CN-YunyangNeural",
+    "甜美女声": "zh-CN-XiaoxiaoNeural",
+    "活泼女声": "zh-CN-XiaoyiNeural"
+}
 
 
-async def generate_audio_edge(text, output_file, voice='zh-CN-YunxiNeural'):
-    """使用Edge TTS生成音频文件"""
+def get_edge_voice_type(voice_type: str) -> str:
+    """
+    获取Edge TTS使用的声线代码
+    :param voice_type: 中文声线名称
+    :return: Edge TTS声线代码
+    :raises ValueError: 如果声线类型不支持
+    """
+    if voice_type not in VOICE_TYPE_MAPPING:
+        valid_voices = list(VOICE_TYPE_MAPPING.keys())
+        raise ValueError(f"不支持的声线类型。支持的声线类型: {', '.join(valid_voices)}")
+    return VOICE_TYPE_MAPPING[voice_type]
+
+
+async def generate_audio_edge(text, output_file, voice='年轻男声'):
+    """
+    使用Edge TTS生成音频文件
+    :param text: 要转换的文本
+    :param output_file: 输出文件路径
+    :param voice: 中文声线名称
+    :return: 是否成功
+    """
     try:
+        edge_voice = get_edge_voice_type(voice)
         communicate = edge_tts.Communicate(
             text=text,
-            voice=voice,  # 语音选项见下方说明
+            voice=edge_voice,
             rate="+5%",  # 语速调整(-50% ~ +100%)
             volume="+0%"  # 音量调整(-50% ~ +50%)
         )
@@ -37,24 +57,31 @@ def create_silent_audio(duration, output_file):
     # 创建一个持续时间为duration秒的静音音频数组
     sample_rate = 44100
     np.zeros(int(duration * sample_rate))
-    
+
     # 使用 moviepy 创建音频剪辑
     audio = ImageSequenceClip([np.zeros((1, 1, 3))], fps=1).set_duration(duration)
     audio = audio.set_audio(None)  # 确保没有音频
-    
+
     # 保存为音频文件
     audio.write_audiofile(output_file, fps=sample_rate)
     return AudioFileClip(output_file)
 
 
-async def generate_audio_files(slide_texts, output_folder):
-    """生成所有音频文件（带进度显示）"""
+async def generate_audio_files(slide_texts, output_folder, voice_type='年轻男声'):
+    """
+    生成所有音频文件（带进度显示）
+    :param slide_texts: 幻灯片文本列表
+    :param output_folder: 输出文件夹
+    :param voice_type: 中文声线名称
+    :return: 音频片段列表
+    """
     audio_clips = []
     total = len(slide_texts)
     start_time = time.time()
     failed = 0  # 失败计数器
 
     print(f"🎙️ 开始生成音频（共{total}段）")
+    print(f"🎤 使用声线: {voice_type}")
 
     for idx, text in enumerate(slide_texts):
         # 进度显示
@@ -72,7 +99,7 @@ async def generate_audio_files(slide_texts, output_folder):
         for retry in range(3):
             try:
                 print(f"   🔄 尝试第{retry + 1}次生成...")
-                success = await generate_audio_edge(text, audio_file)
+                success = await generate_audio_edge(text, audio_file, voice=voice_type)
                 if success:
                     print(f"   ✅ 第{retry + 1}次尝试成功")
                     break

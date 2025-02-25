@@ -59,21 +59,31 @@ def generate_test_requirements(test_config: Dict) -> Dict[str, Any]:
 def generate_online_test(test_config: Dict, api_key: str, save_to_db: bool = True) -> Tuple[Dict, Optional[int]]:
     """生成在线测试题目"""
     try:
-     
         # 生成题目要求和输入数据
         input_data = generate_test_requirements(test_config)
         
-        # 使用LLM生成试卷内容
-        llm = LLMFactory.initialize_tongyi(api_key)
-        prompt = online_test_prompt.format(**input_data)
+        # 初始化通义千问模型
+        LLMFactory.initialize_tongyi(api_key)
+        
+        # 构建消息
+        messages = [{
+            "role": "user",
+            "content": online_test_prompt.format(**input_data)
+        }]
+        
+        # 调用模型生成试卷内容
+        response = LLMFactory.call_tongyi(messages, model_name="qwen-plus-2025-01-25")
         
         # 解析生成的内容
         try:
-            response = llm.invoke(prompt)
             if not response:
                 raise ValueError("API 返回为空")
+            
+            content = response.get('content', '')
+            if not content:
+                raise ValueError("API 返回内容为空")
                 
-            clean_data = response.lstrip("```json").rstrip("```").strip() if isinstance(response, str) else response
+            clean_data = content.lstrip("```json").rstrip("```").strip()
             test_data = json.loads(clean_data)
             
         except Exception as e:
