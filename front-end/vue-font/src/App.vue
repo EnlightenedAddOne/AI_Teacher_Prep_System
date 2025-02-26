@@ -4,9 +4,10 @@
     const Local_url = 'http://127.0.0.1:5000/todo';       // 本机运行前后端的url
     const Server_url = 'http://192.168.63.215:5000/todo'; // 同一局域网下的url
 
-    const baseUrl = ref(Server_url); // 直接使用服务器地址
+    const far_url = 'http://e4ad-218-28-159-8.ngrok-free.app/todo';
 
-    let url = Server_url;
+    const baseUrl = ref(far_url); // 直接使用服务器地址
+
 
     let todos = ref([]);
     let form = reactive({
@@ -28,22 +29,25 @@
 
     // 1. 请求服务器加载数据
     const fetchData = () => {
-        // 避免使用同名变量
         const requestUrl = `${baseUrl.value}?key=${currentStatus.value}`;
-        console.log('请求URL:', requestUrl); // 添加调试输出
         
-        fetch(requestUrl)
-            .then(res => {
-                if (!res.ok) throw new Error(`HTTP错误: ${res.status}`);
-                return res.json();
-            })
-            .then(data => {
-                console.log('获取数据:', data);
-                todos.value = data; // 确保数据正确赋值给todos
-            })
-            .catch(error => {
-                console.error('获取数据失败:', error);
-            });
+        fetch(requestUrl, {
+            headers: {
+                'ngrok-skip-browser-warning': 'any-value', // 跳过ngrok警告
+                'User-Agent': 'MyCustomClient/1.0',        // 自定义UA头
+                'Content-Type': 'application/json'         // 明确请求类型
+            }
+        })
+        .then(res => {
+            if (!res.ok) throw new Error(`HTTP错误 ${res.status}`);
+            return res.json();
+        })
+        .then(data => {
+            todos.value = data;
+        })
+        .catch(error => {
+            console.error('请求失败:', error);
+        });
     };
 
 
