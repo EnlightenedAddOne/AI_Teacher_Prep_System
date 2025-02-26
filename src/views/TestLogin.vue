@@ -4,6 +4,8 @@
     <div>
       <button @click="currentForm = 'login'" :class="{ active: currentForm === 'login' }">登录</button>
       <button @click="currentForm = 'create'" :class="{ active: currentForm === 'create' }">创建用户</button>
+      <button @click="currentForm = 'update'" :class="{ active: currentForm === 'update' }">修改用户</button>
+      <button @click="currentForm = 'delete'" :class="{ active: currentForm === 'delete' }">删除用户</button>
     </div>
 
     <!-- 登录表单 -->
@@ -25,12 +27,32 @@
       <p v-if="createError" style="color: red">{{ createError }}</p>
       <p v-if="createSuccess" style="color: green">{{ createSuccess }}</p>
     </div>
+
+    <!-- 修改用户表单 -->
+    <div v-if="currentForm === 'update'">
+      <h2>修改用户</h2>
+      <input v-model="updateForm.username" placeholder="用户名" />
+      <input v-model="updateForm.password" type="password" placeholder="新密码" />
+      <input v-model="updateForm.role" placeholder="新角色" />
+      <button @click="handleUpdateUser">修改用户</button>
+      <p v-if="updateError" style="color: red">{{ updateError }}</p>
+      <p v-if="updateSuccess" style="color: green">{{ updateSuccess }}</p>
+    </div>
+
+    <!-- 删除用户表单 -->
+    <div v-if="currentForm === 'delete'">
+      <h2>删除用户</h2>
+      <input v-model="deleteForm.username" placeholder="用户名" />
+      <button @click="handleDeleteUser">删除用户</button>
+      <p v-if="deleteError" style="color: red">{{ deleteError }}</p>
+      <p v-if="deleteSuccess" style="color: green">{{ deleteSuccess }}</p>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, reactive, ref } from "vue";
-import { login, createUser } from "@/api/user";
+import { login, createUser, updateUser, deleteUser } from "@/api/user";
 
 export default defineComponent({
   name: "UserManagement",
@@ -54,6 +76,22 @@ export default defineComponent({
     });
     const createError = ref<string | null>(null);
     const createSuccess = ref<string | null>(null);
+
+    // 修改用户表单数据
+    const updateForm = reactive({
+      username: "",
+      password: "",
+      role: "",
+    });
+    const updateError = ref<string | null>(null);
+    const updateSuccess = ref<string | null>(null);
+
+    // 删除用户表单数据
+    const deleteForm = reactive({
+      username: "",
+    });
+    const deleteError = ref<string | null>(null);
+    const deleteSuccess = ref<string | null>(null);
 
     // 处理登录
     const handleLogin = async () => {
@@ -87,6 +125,46 @@ export default defineComponent({
       }
     };
 
+    // 处理修改用户
+    const handleUpdateUser = async () => {
+      updateError.value = null;
+      updateSuccess.value = null;
+
+      // 检查是否已登录
+      if (!token.value) {
+        updateError.value = "请先登录后再修改用户！";
+        return;
+      }
+
+      // 调用修改用户接口
+      const success = await updateUser(token.value, updateForm.username, updateForm.password, updateForm.role);
+      if (success) {
+        updateSuccess.value = "用户信息更新成功";
+      } else {
+        updateError.value = "用户信息更新失败";
+      }
+    };
+
+    // 处理删除用户
+    const handleDeleteUser = async () => {
+      deleteError.value = null;
+      deleteSuccess.value = null;
+
+      // 检查是否已登录
+      if (!token.value) {
+        deleteError.value = "请先登录后再删除用户！";
+        return;
+      }
+
+      // 调用删除用户接口
+      const success = await deleteUser(token.value, deleteForm.username);
+      if (success) {
+        deleteSuccess.value = "用户删除成功";
+      } else {
+        deleteError.value = "用户删除失败";
+      }
+    };
+
     return {
       currentForm,
       loginForm,
@@ -95,15 +173,22 @@ export default defineComponent({
       createForm,
       createError,
       createSuccess,
+      updateForm,
+      updateError,
+      updateSuccess,
+      deleteForm,
+      deleteError,
+      deleteSuccess,
       handleLogin,
       handleCreateUser,
+      handleUpdateUser,
+      handleDeleteUser,
     };
   },
 });
 </script>
 
 <style scoped>
-/* 添加一些简单的样式 */
 input {
   margin: 5px;
   padding: 5px;
