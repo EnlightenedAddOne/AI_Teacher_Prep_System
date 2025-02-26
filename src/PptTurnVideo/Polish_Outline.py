@@ -95,7 +95,7 @@ if __name__ == "__main__":
     # subject = "计算机网络"
     # topic = "TCP协议"
     # 使用你的API密钥测试
-    api_key = "sk-1e4ec15f97a044ab8fca717279a9cbea"  # 替换为实际的API密钥
+    api_key = "sk-6798c07a3eb34cfca0c2f426786f2857"  # 替换为实际的API密钥
     # outline = ppt_outline(api_key, subject=subject, topic=topic)
     # print(outline)
     polish_text = [
