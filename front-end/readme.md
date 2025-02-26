@@ -66,6 +66,31 @@ MySQL 适用于大型项目和生产环境，因为它是一个功能更强大�
 
 连接成功示意图
 
-![img.png](img.png)
+![img.png](img/img.png)
 
 4.前端，即 *App.vue* 文件里  *Server_url* 的IP需要更改为 对应的后端的IPV4地址 
+
+
+# 非同一局域网内不同设备远程前后端连接
+
+1.使用内网穿透工具 *ngrok* 创建隧道，使前端可以远程访问后端接口
+
+教程可参考 [利用ngrok实现内网穿透（全网最详细教程）](https://blog.csdn.net/Myon5/article/details/134626288)
+
+2.下载好 *ngrok* 双击打开，执行如下命令：
+
+    ngrok authtoken （Your Authtoken）
+
+再开启后端服务
+
+最后，开启 5000 端口，因为后端也是 5000 ，需要与之对应
+
+    ngrok http 5000
+
+成功后的界面
+
+![img_1.png](img/img_1.png)
+
+3.将图片中画横线的地址复制到前端的 *far_url* 里
+
+![img_2.png](img/img_2.png)

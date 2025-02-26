@@ -1,12 +1,12 @@
 <script setup>
     import {onMounted, ref, reactive, computed} from 'vue';
 
-    const Local_url = 'http://127.0.0.1:5000/todo';       // 本机运行前后端的url
-    const Server_url = 'http://192.168.63.215:5000/todo'; // 同一局域网下的url
+    const Local_url = 'http://127.0.0.1:5000';       // 本机运行前后端的url
+    const Server_url = 'http://192.168.63.215:5000'; // 同一局域网下的url
 
-    const far_url = 'http://e4ad-218-28-159-8.ngrok-free.app/todo';
-
-    const baseUrl = ref(far_url); // 直接使用服务器地址
+    const far_url = 'https://8c97-218-28-159-7.ngrok-free.app'; // 非同一局域网下的url
+    
+    const baseUrl = ref(Local_url); // 直接使用服务器地址
 
 
     let todos = ref([]);
@@ -29,7 +29,7 @@
 
     // 1. 请求服务器加载数据
     const fetchData = () => {
-        const requestUrl = `${baseUrl.value}?key=${currentStatus.value}`;
+        const requestUrl = `${baseUrl.value}/todo?key=${currentStatus.value}`;
         
         fetch(requestUrl, {
             headers: {
@@ -53,48 +53,51 @@
 
     // 2. 切换任务的完成状态
     const change_todo_status = (item) => {
-        console.log(JSON.stringify(item));
-        fetch(`${url}/${item.id}`,
-            {
-                method: 'put',
-                body: JSON.stringify(item),
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            },
-        ).then(function (response) {
-            return response.json();
-        }).then(function (data) {
-            console.log(data);
+        // 修正：使用正确的baseUrl
+        fetch(`${baseUrl.value}/todo/${item.id}`, {
+            method: 'PUT',
+            body: JSON.stringify({ done: !item.done }), // 明确发送状态
+            headers: {
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            }
+        }).then(res => {
+            if (!res.ok) throw new Error(`HTTP错误 ${res.status}`);
+            return res.json();
+        }).then(data => {
+            console.log('状态更新:', data);
+            fetchData(); // 刷新列表
+        }).catch(error => {
+            console.error('状态更新失败:', error);
         });
     };
     // 3. 添加任务
     const add_todo = () => {
-        // 从baseUrl中移除'/todo'路径，因为我们需要访问'/add_todo'
-        const apiBase = baseUrl.value.substring(0, baseUrl.value.lastIndexOf('/'));
-        const addUrl = `${apiBase}/add_todo`;
-        
-        console.log('添加任务URL:', addUrl); // 调试输出
+        // 修正：直接使用baseUrl不需要路径处理
+        const addUrl = `${baseUrl.value}/todo/add_todo`;
         
         fetch(addUrl, {
             method: 'POST',
             body: JSON.stringify(form),
-            headers: {'Content-Type': 'application/json'},
+            headers: {
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true' // 添加ngrok头
+            }
         }).then((response) => {
             if (!response.ok) throw new Error(`HTTP错误: ${response.status}`);
             return response.json();
         }).then((data) => {
-            console.log('添加任务响应:', data);
+            console.log('添加响应:', data);
             form.title = '';
-            fetchData(); // 添加后刷新列表
+            fetchData();
         }).catch(error => {
-            console.error('添加任务失败:', error);
+            console.error('添加失败:', error);
         });
     };
 
     // 4. 删除任务
     const delete_todo = (index) => {
-        fetch(`${url}/${index}`, {
+        fetch(`${baseUrl.value}/todo/${index}`, {
             method: 'DELETE',
             body: JSON.stringify({id: index})
         }).then((response) => {
@@ -107,7 +110,7 @@
 
     // 5. 清除已完成任务
     const clearCompletedTodos = () => {
-        fetch(`${url}/clear_done`, {
+        fetch(`${baseUrl.value}/todo/clear_done`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
