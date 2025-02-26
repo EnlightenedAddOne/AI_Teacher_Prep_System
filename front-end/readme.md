@@ -68,4 +68,4 @@ MySQL 适用于大型项目和生产环境，因为它是一个功能更强大�
 
 ![img.png](img.png)
 
-4.前端，即 *App.vue* 文件里根据需要修改 *baseUrl*
+4.前端，即 *App.vue* 文件里  *Server_url* 的IP需要更改为 对应的后端的IPV4地址 
