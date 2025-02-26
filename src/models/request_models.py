@@ -31,7 +31,7 @@ class TeachingDesignRequest(BaseModel):
     ppt_turn_video: bool = Field(default=False, description="是否需要将生成的PPT转换为视频")
     voice_type: str = Field(
         default="年轻男声",
-        description="PPT转视频时使用的中文声线（可选：年轻男声、温暖女声、播音男声、甜美女声、活泼女声）"
+        description="选择中文声线类型（可选：年轻男声、温暖女声、播音男声、甜美女声、活泼女声）"
     )
     resource_recommendation: Optional[ResourceRecommendationRequest] = None
 
@@ -39,6 +39,13 @@ class TeachingDesignRequest(BaseModel):
     def validate_image_count(cls, v, info: ValidationInfo):
         if v < 0:
             raise ValueError("图片数量不能小于0")
+        return v
+
+    @field_validator('voice_type')
+    def validate_voice_type(cls, v):
+        valid_voices = {"年轻男声", "温暖女声", "播音男声", "甜美女声", "活泼女声"}
+        if v not in valid_voices:
+            raise ValueError(f"不支持的声线类型。支持的声线类型: {', '.join(valid_voices)}")
         return v
 
 
