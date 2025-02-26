@@ -32,21 +32,21 @@ def set_security_headers(response):
     return response
 
 # ================== 全局错误处理 ==================
-@app.errorhandler(404)
-def not_found(error):
-    return jsonify({
-        "error": "资源未找到",
-        "status": 404,
-        "path": request.path
-    }), 404
-
-@app.errorhandler(500)
-def internal_error(error):
-    return jsonify({
-        "error": "服务器内部错误",
-        "status": 500,
-        "request_id": request.headers.get('X-Request-ID', '')
-    }), 500
+# @app.errorhandler(404)
+# def not_found(error):
+#     return jsonify({
+#         "error": "资源未找到",
+#         "status": 404,
+#         "path": request.path
+#     }), 404
+#
+# @app.errorhandler(500)
+# def internal_error(error):
+#     return jsonify({
+#         "error": "服务器内部错误",
+#         "status": 500,
+#         "request_id": request.headers.get('X-Request-ID', '')
+#     }), 500
 
 # ================== 请求预处理 ==================
 @app.before_request
