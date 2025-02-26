@@ -5,7 +5,9 @@ from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 # 初始化数据库连接:
 # front-end/sql/todo-sql.sql
 
-engine = create_engine('sqlite:///D:/PROJECT/Python/test01/front-end/flask-end/todo_sql/todo-sql.sql')
+# 更改为自己目录下的 todo-sql.sql数据库 路径
+sql_path=r'D:/PROJECT/Python/test01/front-end/flask-end/todo_sql/todo-sql.sql'
+engine = create_engine(f'sqlite:///{sql_path}')
 Session = sessionmaker(bind=engine)
 Base = declarative_base()
 
