@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 # ================== 核心配置 ==================
 # 增强CORS配置
-CORS(app, 
+CORS(app,
     resources={
         r"/todo*": {
             "origins": ["http://localhost:5173", "https://*.ngrok-free.app"],
@@ -55,7 +55,7 @@ def handle_ngrok_headers():
     # 转换ngrok的协议头
     if 'X-Forwarded-Proto' in request.headers:
         request.environ['wsgi.url_scheme'] = request.headers['X-Forwarded-Proto']
-    
+
     # 记录自定义头日志
     if 'ngrok-skip-browser-warning' in request.headers:
         app.logger.debug('接收到ngrok跳过警告头')
@@ -79,7 +79,7 @@ def todo_view():
     #     write_data(session,title)
     #     return {'status': 'ok'}
 
-@app.route('/add_todo', methods=['GET', 'POST'])
+@app.route('/todo/add_todo', methods=['GET', 'POST'])
 def add_task():
     if request.method == 'POST':
         title = request.json.get('title', None)
@@ -122,5 +122,5 @@ if __name__ == '__main__':
         host='0.0.0.0',
         port=5000,
         debug=True,
-        ssl_context='adhoc'  # 启用HTTPS支持
+        # ssl_context='adhoc'  # 启用HTTPS支持
     )
