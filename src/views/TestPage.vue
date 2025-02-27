@@ -75,6 +75,12 @@
               />
             </el-select>
           </el-form-item>
+          <el-form-item label="是否生成 PPT 视频">
+            <el-switch
+              v-model="teachingDesignRequest.ppt_turn_video"
+              @change="handlePptVideoChange"
+            />
+          </el-form-item>
           <el-form-item label="是否推荐书籍">
             <el-switch
               v-model="teachingDesignRequest.resource_recommendation.require_books"
@@ -191,14 +197,8 @@
             <div class="preview-container">
               <div v-html="formatMarkdown(teachingDesignResponse?.content)"></div>
             </div>
-            <!-- 下载按钮 -->
-            <el-button
-              class="download-button"
-              type="success"
-              @click="downloadPdf('teaching_design.pdf')"
-            >
-              下载 PDF
-            </el-button>
+             <!-- 下载按钮 -->
+             <el-button class="download-button" type="success" @click="downloadPdf('teaching_design.pdf')">下载 PDF</el-button>
             <!-- 图片展示 -->
             <div v-if="teachingDesignResponse?.images" class="image-container">
               <h3>教学设计图片</h3>
@@ -326,6 +326,13 @@ const teachingDesignForm = ref<FormInstance | null>(null);
 
 const handleWithImagesChange = () => {
   teachingDesignRequest.value.image_count = teachingDesignRequest.value.with_images ? 1 : 0;
+};
+
+const handlePptVideoChange = () => {
+  if (!teachingDesignRequest.value.ppt_turn_video) {
+    // 无需设置默认值，因为已经初始化为false
+
+  }
 };
 
 const handleBooksChange = () => {
