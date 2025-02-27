@@ -75,13 +75,7 @@
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="是否生成 PPT 视频">
-            <el-switch
-              v-model="teachingDesignRequest.ppt_turn_video"
-              @change="handlePptVideoChange"
-            />
-          </el-form-item>
-          <el-form-item label="是否推荐资源">
+          <el-form-item label="是否推荐书籍">
             <el-switch
               v-model="teachingDesignRequest.resource_recommendation.require_books"
               @change="handleBooksChange"
@@ -195,7 +189,7 @@
           <div v-else>
             <!-- 浏览框 -->
             <div class="preview-container">
-              <div v-html="formatMarkdown(teachingDesignResponse)"></div>
+              <div v-html="formatMarkdown(teachingDesignResponse?.content)"></div>
             </div>
             <!-- 下载按钮 -->
             <el-button
@@ -206,39 +200,29 @@
               下载 PDF
             </el-button>
             <!-- 图片展示 -->
-            <div
-              v-if="teachingDesignResponse.images"
-              class="image-container"
-            >
-            <h3>教学设计图片</h3>
-                <ul>
-                  <li
-                    v-for="image in teachingDesignResponse.images"
-                    :key="image.md5"
-                  >
-                    <!-- 图片展示 -->
-                    <img
-                      :src="extractImageUrl(image.url)"
-                      :alt="image.title"
-                      class="design-image"
-                    />
-                    <!-- 点击链接 -->
-                    <a :href="extractImageUrl(image.url)" target="_blank">
-                      查看图片 {{ image.title }}
-                    </a>
-                    <el-button
+            <div v-if="teachingDesignResponse?.images" class="image-container">
+              <h3>教学设计图片</h3>
+              <ul>
+                <li v-for="image in teachingDesignResponse.images" :key="image.md5">
+                  <!-- 图片展示 -->
+                  <img :src="image.url" :alt="image.title" class="design-image" />
+                  <!-- 点击链接 -->
+                  <a :href="image.url" target="_blank">
+                    查看图片 {{ image.title }}
+                  </a>
+                  <el-button
                     type="success"
                     @click="downloadImage(image.url)"
                     class="download-image-button"
-                    >
-                      下载图片
-                    </el-button>
-                  </li>
-                </ul>
+                  >
+                    下载图片
+                  </el-button>
+                </li>
+              </ul>
             </div>
             <!-- PPT 视频展示 -->
             <div
-              v-if="teachingDesignResponse.ppt_video_path"
+              v-if="teachingDesignResponse?.ppt_video_path"
               class="video-container"
             >
               <h3>PPT 视频</h3>
@@ -249,7 +233,7 @@
             </div>
             <!-- 推荐资源展示 -->
             <div
-              v-if="teachingDesignResponse.books"
+              v-if="teachingDesignResponse?.books"
               class="resource-container"
             >
               <h3>推荐书籍</h3>
@@ -263,7 +247,7 @@
               </ul>
             </div>
             <div
-              v-if="teachingDesignResponse.papers"
+              v-if="teachingDesignResponse?.papers"
               class="resource-container"
             >
               <h3>推荐论文</h3>
@@ -277,7 +261,7 @@
               </ul>
             </div>
             <div
-              v-if="teachingDesignResponse.videos"
+              v-if="teachingDesignResponse?.videos"
               class="resource-container"
             >
               <h3>推荐视频</h3>
@@ -317,6 +301,7 @@ const teachingDesignRequest = ref<TeachingDesignRequest>({
   with_images: false,
   image_count: 0,
   ppt_turn_video: false,
+  voice_type: '年轻男声', // 默认值
   resource_recommendation: {
     require_books: false,
     book_count: 0,
@@ -339,39 +324,20 @@ const rules = {
 
 const teachingDesignForm = ref<FormInstance | null>(null);
 
-const extractImageUrl = (url: string) => {
-  const match = url.match(/<url[^>]*>([^<]+)<\/url>/);
-  return match ? match[1] : url; // 如果匹配成功，返回提取的 URL，否则返回原始 URL
-};
-
 const handleWithImagesChange = () => {
-  if (!teachingDesignRequest.value.with_images) {
-    teachingDesignRequest.value.image_count = 0;
-  }
-};
-
-const handlePptVideoChange = () => {
-  if (!teachingDesignRequest.value.ppt_turn_video) {
-
-  }
+  teachingDesignRequest.value.image_count = teachingDesignRequest.value.with_images ? 1 : 0;
 };
 
 const handleBooksChange = () => {
-  if (!teachingDesignRequest.value.resource_recommendation.require_books) {
-    teachingDesignRequest.value.resource_recommendation.book_count = 0;
-  }
+  teachingDesignRequest.value.resource_recommendation.book_count = teachingDesignRequest.value.resource_recommendation.require_books ? 1 : 0;
 };
 
 const handlePapersChange = () => {
-  if (!teachingDesignRequest.value.resource_recommendation.require_papers) {
-    teachingDesignRequest.value.resource_recommendation.paper_count = 0;
-  }
+  teachingDesignRequest.value.resource_recommendation.paper_count = teachingDesignRequest.value.resource_recommendation.require_papers ? 1 : 0;
 };
 
 const handleVideosChange = () => {
-  if (!teachingDesignRequest.value.resource_recommendation.require_videos) {
-    teachingDesignRequest.value.resource_recommendation.video_count = 0;
-  }
+  teachingDesignRequest.value.resource_recommendation.video_count = teachingDesignRequest.value.resource_recommendation.require_videos ? 1 : 0;
 };
 
 const handleGenerateTeachingDesign = async () => {
@@ -407,6 +373,7 @@ const handleCancelGeneration = () => {
     with_images: false,
     image_count: 0,
     ppt_turn_video: false,
+    voice_type: '年轻男声', // 默认值
     resource_recommendation: {
       require_books: false,
       book_count: 0,
@@ -440,9 +407,9 @@ const saveTeachingDesign = () => {
   alert('教案已保存！');
 };
 
-const formatMarkdown = (response: TeachingDesignResponse) => {
-  if (response) {
-    return marked(response.content);
+const formatMarkdown = (content: string | undefined) => {
+  if (content) {
+    return marked(content);
   }
   return '';
 };
@@ -470,7 +437,7 @@ const downloadImage = (url: string) => {
 
 .box-card {
   margin-bottom: 20px;
-  background-color: #f9f9f9;
+  background-color: #f9f9f9f9;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
@@ -584,14 +551,6 @@ const downloadImage = (url: string) => {
 
 .resource-container {
   margin-top: 20px;
-}
-
-.design-image {
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin-top: 10px;
 }
 
 .download-image-button {

@@ -1,15 +1,16 @@
 import axios from "axios";
 import type { AxiosResponse } from "axios";
 
-const BASE_URL = "http://localhost:8080";
+const baseURL1 = "http://localhost:8080"; // 修改后的基础 URL
+const TIMEOUT = 20000; // 超时时间设置为 20 秒
 
 // 登录接口
 export const login = async (username: string, password: string): Promise<string | null> => {
     try {
-        const response: AxiosResponse<{ token: string }> = await axios.post(`${BASE_URL}/login`, {
+        const response: AxiosResponse<{ token: string }> = await axios.post(`${baseURL1}/login`, {
             username,
             password,
-        });
+        }, { timeout: TIMEOUT });
         return response.data.token;
     } catch (error) {
         console.error("登录失败", error);
@@ -21,7 +22,7 @@ export const login = async (username: string, password: string): Promise<string 
 export const createUser = async (token: string, username: string, password: string, role: string): Promise<boolean> => {
     try {
         const response: AxiosResponse<{ message: string }> = await axios.post(
-            `${BASE_URL}/admin/create-user`,
+            `${baseURL1}/admin/create-user`,
             {
                 username,
                 password,
@@ -31,6 +32,7 @@ export const createUser = async (token: string, username: string, password: stri
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
+                timeout: TIMEOUT
             }
         );
         return response.data.message === "用户创建成功";
@@ -44,7 +46,7 @@ export const createUser = async (token: string, username: string, password: stri
 export const updateUser = async (token: string, username: string, password: string, role: string): Promise<boolean> => {
     try {
         const response: AxiosResponse<{ message: string }> = await axios.put(
-            `${BASE_URL}/admin/update-user`,
+            `${baseURL1}/admin/update-user`,
             {
                 username,
                 password,
@@ -54,6 +56,7 @@ export const updateUser = async (token: string, username: string, password: stri
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
+                timeout: TIMEOUT
             }
         );
         return response.data.message === "用户信息更新成功";
@@ -67,11 +70,12 @@ export const updateUser = async (token: string, username: string, password: stri
 export const deleteUser = async (token: string, username: string): Promise<boolean> => {
     try {
         const response: AxiosResponse<{ message: string }> = await axios.delete(
-            `${BASE_URL}/admin/delete-user/${username}`,
+            `${baseURL1}/admin/delete-user/${username}`,
             {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
+                timeout: TIMEOUT
             }
         );
         return response.data.message === "用户删除成功";

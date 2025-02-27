@@ -6,7 +6,7 @@ import type {
   ExerciseResponse,
   OnlineTestRequest,
   OnlineTestResponse
-} from '@/types/exam'; // 使用 import type 导入类型
+} from '@/types/exam';
 
 const apiClient = axios.create({
   baseURL: 'http://localhost:8000', // 后端运行地址
