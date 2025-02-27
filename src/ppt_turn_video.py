@@ -75,5 +75,5 @@ if __name__ == '__main__':
     subject = "计算机网络"
     topic = "网络协议"
     voice_type = "年轻男声"
-    deepseek_api_key = "sk-1e4ec15f97a044ab8fca717279a9cbea"
+    deepseek_api_key = "sk-6798c07a3eb34cfca0c2f426786f2857"
     asyncio.run(create_ppt_videos(api_key=deepseek_api_key, subject=subject, topic=topic, voice_type=voice_type))
