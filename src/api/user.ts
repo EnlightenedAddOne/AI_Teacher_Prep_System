@@ -2,7 +2,7 @@ import axios from "axios";
 import type { AxiosResponse } from "axios";
 
 const baseURL1 = "http://localhost:8080"; // 修改后的基础 URL
-const TIMEOUT = 20000; // 超时时间设置为 20 秒
+const TIMEOUT = 200000; // 超时时间设置为 200秒
 
 // 登录接口
 export const login = async (username: string, password: string): Promise<string | null> => {
