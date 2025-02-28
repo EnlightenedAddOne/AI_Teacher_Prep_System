@@ -5,8 +5,8 @@
       <div class="feature-container">
         <!-- 功能区标题 -->
         <div class="features-title">
-          <h2>选择您的需求</h2>
-          <p>快速生成教案或多媒体教学材料</p>
+          <h2>智能备课助手</h2>
+          <p>一键生成教案和多媒体教学材料</p>
         </div>
 
         <!-- 两个入口文件组成的容器 -->
