@@ -80,6 +80,28 @@
         <el-button class="back-button" type="text" @click="resetState">&lt;&lt; 返回</el-button>
       </el-card>
 
+      <!-- 倒计时器 -->
+      <el-card class="box-card timer-card">
+        <template #header>
+          <div class="card-header">
+            <span>倒计时</span>
+          </div>
+        </template>
+        <div class="timer-content">
+          <div>
+            <div>
+              <span>剩余时间：</span>
+              <span>{{ formattedTime }}</span>
+            </div>
+          </div>
+          <div class="timer-controls">
+            <el-button type="primary" @click="startTimer">开始</el-button>
+            <el-button type="warning" @click="stopTimer">停止</el-button>
+            <el-button type="success" @click="resetTimer">复位</el-button>
+          </div>
+        </div>
+      </el-card>
+
       <el-card class="box-card result-card">
         <template #header>
           <div class="card-header">
@@ -103,7 +125,7 @@
 
           <!-- 提示信息 -->
           <div v-else>
-            <p>请填写上方表格生成在线测试。</p>
+            <p>在线测试生成失败，请检查输入是否正确。</p>
           </div>
         </div>
       </el-card>
@@ -112,7 +134,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { generateOnlineTest, downloadPdf as apiDownloadPdf } from '@/api/examService';
 import type { OnlineTestRequest, OnlineTestResponse } from '@/types/exam';
 import { Loading, Edit } from '@element-plus/icons-vue';
@@ -134,20 +156,79 @@ const onlineTestResponse = ref<OnlineTestResponse | null>(null);
 const isLoading = ref(false);
 const isGenerating = ref(false);
 
+const timerRunning = ref(false); // 控制倒计时器的运行状态
+const timeLimitInSeconds = ref(0); // 倒计时的初始时间（秒）
+const remainingTime = ref(0); // 剩余时间
+const intervalId = ref<ReturnType<typeof setInterval> | undefined>(undefined); // 定义 intervalId 为全局变量
+
+const formattedTime = computed(() => {
+  const hours = Math.floor(remainingTime.value / 3600);
+  const minutes = Math.floor((remainingTime.value % 3600) / 60);
+  const seconds = remainingTime.value % 60;
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+});
+
 const handleGenerateOnlineTest = async () => {
+  console.log('时间限制（分钟）:', onlineTestRequest.value.time_limit); // 调试日志
   showOnlineTestForm.value = false; // 关闭表单弹窗
   isGenerating.value = true; // 设置标志变量，表示正在生成
 
   try {
     isLoading.value = true;
-    onlineTestResponse.value = await generateOnlineTest(onlineTestRequest.value);
+
+    // 将表单中的时间限制值（分钟）转换为秒
+    timeLimitInSeconds.value = Number(onlineTestRequest.value.time_limit) * 60; // 转换为秒
+    remainingTime.value = timeLimitInSeconds.value; // 初始化剩余时间
+    console.log('时间限制（秒）:', timeLimitInSeconds.value); // 调试日志
+    console.log('剩余时间（秒）:', remainingTime.value); // 调试日志
+
+    // 发送请求到后端
+    const result = await generateOnlineTest(onlineTestRequest.value);
+    console.log('后端返回结果:', result);
+
+    if (result) {
+      onlineTestResponse.value = result; // 如果后端返回成功，显示结果
+    } else {
+      onlineTestResponse.value = null; // 如果后端返回失败，显示失败提示
+    }
   } catch (error) {
     console.error('生成在线测试失败:', error);
-    alert('生成在线测试失败，请检查输入是否正确');
-    resetState(); // 如果失败，重置状态
+    onlineTestResponse.value = null; // 如果请求失败，显示失败提示
   } finally {
     isLoading.value = false;
+    isGenerating.value = true; // 保持生成状态，不重置
   }
+};
+
+const startTimer = () => {
+  if (timerRunning.value) return; // 如果已经在运行，不再重复启动
+  timerRunning.value = true;
+  intervalId.value = setInterval(() => {
+    if (remainingTime.value > 0) {
+      remainingTime.value--;
+    } else {
+      clearInterval(intervalId.value);
+      alert('倒计时结束！');
+      timerRunning.value = false;
+    }
+  }, 1000);
+};
+
+const stopTimer = () => {
+  timerRunning.value = false;
+  if (intervalId.value) {
+    clearInterval(intervalId.value);
+    intervalId.value = undefined; // 清除定时器
+  }
+};
+
+const resetTimer = () => {
+  timerRunning.value = false;
+  if (intervalId.value) {
+    clearInterval(intervalId.value);
+    intervalId.value = undefined; // 清除定时器
+  }
+  remainingTime.value = timeLimitInSeconds.value; // 重置剩余时间为用户设置的时间
 };
 
 const downloadPdf = async (filename: string) => {
@@ -176,6 +257,12 @@ const resetState = () => {
   showOnlineTestForm.value = false;
   onlineTestResponse.value = null;
   isGenerating.value = false;
+  timerRunning.value = false; // 停止倒计时器
+  if (intervalId.value) {
+    clearInterval(intervalId.value);
+    intervalId.value = undefined; // 清除定时器
+  }
+  remainingTime.value = 0; // 重置剩余时间
 };
 </script>
 
@@ -214,7 +301,7 @@ const resetState = () => {
   justify-content: center;
   width: 500px;
   height: 500px;
-  background-color: #f9f9f9;
+  background-color: #f9f9f9f9;
   border: 1px solid #ddd;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -332,5 +419,20 @@ const resetState = () => {
   color: #1677ff;
   text-decoration: none;
   cursor: pointer;
+}
+
+.timer-card {
+  margin-bottom: 20px;
+}
+
+.timer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+.timer-controls {
+  margin-top: 20px;
 }
 </style>
