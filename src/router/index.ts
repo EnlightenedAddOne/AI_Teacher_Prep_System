@@ -8,17 +8,20 @@ const router = createRouter({
     {
       path: '/TestPage',
       name: 'TestPage',
-      component: () => import('@/views/TestPage.vue')
+      component: () => import('@/views/TestPage.vue'),
+      meta: { title: '测试页' }
     },
     {
       path: '/TestLogin',
       name: 'TestLogin',
-      component: () => import('@/views/TestLogin.vue')
+      component: () => import('@/views/TestLogin.vue'),
+      meta: { title: '测试用户功能页' }
     },
     {
       path: '/login',
       name: 'login',
-      component: () => import('@/views/login/LoginView.vue')
+      component: () => import('@/views/login/LoginView.vue'),
+      meta: { title: '登录页' }
     },
     {
       path: '/',
@@ -27,38 +30,45 @@ const router = createRouter({
       children: [
         {
           path: "",
-          component: IndexView
+          component: IndexView,
+          meta: { title: '首页' }
 
         },
         {
           path: '/TeachingAuto',
           name: 'TeachingAuto',
-          component: () => import('@/views/TeachingAuto/TeachingAuto.vue')
+          component: () => import('@/views/TeachingAuto/TeachingAuto.vue'),
+          meta: { title: '智能备课助手' }
         },
         {
           path: '/Record',
           name: 'Record',
-          component: () => import('@/views/Record/Record.vue')
+          component: () => import('@/views/Record/Record.vue'),
+          meta: { title: '历史记录'}
         },
         {
           path: '/Test',
           name: 'Test',
-          component: () => import('@/views/Test/Test.vue')
+          component: () => import('@/views/Test/Test.vue'),
+          meta: { title: '智能习题生成器' }
         },
         {
           path: '/OnlineTest',
           name: 'OnlineTest',
-          component: () => import('@/views/OnlineTest/OnlineTest.vue')
+          component: () => import('@/views/OnlineTest/OnlineTest.vue'),
+          meta: { title: '在线测试生成器' }
         },
         {
           path: '/StudentAnalysis',
           name: 'StudentAnalysis',
-          component: () => import('@/views/StudentAnalysis/StudentAnalysis.vue')
+          component: () => import('@/views/StudentAnalysis/StudentAnalysis.vue'),
+          meta: { title: '智能学情分析' }
         },
         {
           path: '/Self',
           name: 'Self',
-          component: () => import('@/views/Self/Self.vue')
+          component: () => import('@/views/Self/Self.vue'),
+          meta: { title: '个人中心' }
         }
       ]
     }

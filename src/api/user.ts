@@ -11,7 +11,9 @@ export const login = async (username: string, password: string): Promise<string 
             username,
             password,
         }, { timeout: TIMEOUT });
-        return response.data.token;
+        const token = response.data.token;
+        console.log("登录成功，返回的 token:", token);
+        return token;
     } catch (error) {
         console.error("登录失败", error);
         return null;
@@ -35,7 +37,9 @@ export const createUser = async (token: string, username: string, password: stri
                 timeout: TIMEOUT
             }
         );
-        return response.data.message === "用户创建成功";
+        const success = response.data.message === "用户创建成功";//这里改成后端返回的成功语句后面几个函数一样
+        console.log("创建用户接口返回的结果:", success);
+        return success;
     } catch (error) {
         console.error("用户创建失败", error);
         return false;
@@ -59,7 +63,9 @@ export const updateUser = async (token: string, username: string, password: stri
                 timeout: TIMEOUT
             }
         );
-        return response.data.message === "用户信息更新成功";
+        const success = response.data.message === "用户信息更新成功";
+        console.log("修改用户接口返回的结果:", success);
+        return success;
     } catch (error) {
         console.error("用户信息更新失败", error);
         return false;
@@ -78,7 +84,9 @@ export const deleteUser = async (token: string, username: string): Promise<boole
                 timeout: TIMEOUT
             }
         );
-        return response.data.message === "用户删除成功";
+        const success = response.data.message === "用户删除成功";
+        console.log("删除用户接口返回的结果:", success);
+        return success;
     } catch (error) {
         console.error("用户删除失败", error);
         return false;

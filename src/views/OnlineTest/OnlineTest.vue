@@ -10,7 +10,7 @@
     <div v-if="!isGenerating && !onlineTestResponse" class="feature-box" @click="showOnlineTestForm = true">
       <el-icon><Edit /></el-icon>
       <div class="feature-content">
-        <h3>在线测试生成</h3>
+        <h1>在线测试生成</h1>
         <p>自动生成在线测试，帮助学生进行自我评估。</p>
       </div>
     </div>
@@ -434,5 +434,10 @@ const resetState = () => {
 
 .timer-controls {
   margin-top: 20px;
+}
+
+h1{
+  font-size: 37px;
+  text-align: center;
 }
 </style>

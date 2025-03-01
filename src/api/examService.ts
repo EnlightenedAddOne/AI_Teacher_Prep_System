@@ -9,7 +9,7 @@ import type {
 } from '@/types/exam';
 
 const apiClient = axios.create({
-  baseURL: 'http://localhost:8000', // 后端运行地址
+  baseURL: 'http://192.168.63.215:8000', // 后端运行地址
   timeout: 100* 60 * 1000, // 设置超时时间为 10 分钟
 });
 
@@ -59,3 +59,12 @@ export async function downloadPdf(filename: string): Promise<Blob> {
   });
   return response.data;
 }
+
+// 声线选择功能
+export const voiceOptions = [
+  { label: '年轻男声', value: '年轻男声' },
+  { label: '温暖女声', value: '温暖女声' },
+  { label: '播音男声', value: '播音男声' },
+  { label: '甜美女声', value: '甜美女声' },
+  { label: '活泼女声', value: '活泼女声' }
+]

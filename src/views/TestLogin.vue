@@ -1,55 +1,3 @@
-<template>
-  <div>
-    <!-- 切换按钮 -->
-    <div>
-      <button @click="currentForm = 'login'" :class="{ active: currentForm === 'login' }">登录</button>
-      <button @click="currentForm = 'create'" :class="{ active: currentForm === 'create' }">创建用户</button>
-      <button @click="currentForm = 'update'" :class="{ active: currentForm === 'update' }">修改用户</button>
-      <button @click="currentForm = 'delete'" :class="{ active: currentForm === 'delete' }">删除用户</button>
-    </div>
-
-    <!-- 登录表单 -->
-    <div v-if="currentForm === 'login'">
-      <h2>登录</h2>
-      <input v-model="loginForm.username" placeholder="用户名" />
-      <input v-model="loginForm.password" type="password" placeholder="密码" />
-      <button @click="handleLogin">登录</button>
-      <p v-if="loginError" style="color: red">{{ loginError }}</p>
-    </div>
-
-    <!-- 创建用户表单 -->
-    <div v-if="currentForm === 'create'">
-      <h2>创建用户</h2>
-      <input v-model="createForm.username" placeholder="用户名" />
-      <input v-model="createForm.password" type="password" placeholder="密码" />
-      <input v-model="createForm.role" placeholder="角色" />
-      <button @click="handleCreateUser">创建用户</button>
-      <p v-if="createError" style="color: red">{{ createError }}</p>
-      <p v-if="createSuccess" style="color: green">{{ createSuccess }}</p>
-    </div>
-
-    <!-- 修改用户表单 -->
-    <div v-if="currentForm === 'update'">
-      <h2>修改用户</h2>
-      <input v-model="updateForm.username" placeholder="用户名" />
-      <input v-model="updateForm.password" type="password" placeholder="新密码" />
-      <input v-model="updateForm.role" placeholder="新角色" />
-      <button @click="handleUpdateUser">修改用户</button>
-      <p v-if="updateError" style="color: red">{{ updateError }}</p>
-      <p v-if="updateSuccess" style="color: green">{{ updateSuccess }}</p>
-    </div>
-
-    <!-- 删除用户表单 -->
-    <div v-if="currentForm === 'delete'">
-      <h2>删除用户</h2>
-      <input v-model="deleteForm.username" placeholder="用户名" />
-      <button @click="handleDeleteUser">删除用户</button>
-      <p v-if="deleteError" style="color: red">{{ deleteError }}</p>
-      <p v-if="deleteSuccess" style="color: green">{{ deleteSuccess }}</p>
-    </div>
-  </div>
-</template>
-
 <script lang="ts">
 import { defineComponent, reactive, ref } from "vue";
 import { login, createUser, updateUser, deleteUser } from "@/api/user";
@@ -96,7 +44,9 @@ export default defineComponent({
     // 处理登录
     const handleLogin = async () => {
       loginError.value = null;
+      console.log("尝试登录，用户名:", loginForm.username, "密码:", loginForm.password);
       const tokenValue = await login(loginForm.username, loginForm.password);
+      console.log("登录返回的 token:", tokenValue);
       if (tokenValue) {
         token.value = tokenValue;
         createSuccess.value = "登录成功！"; // 提示登录成功
@@ -110,14 +60,18 @@ export default defineComponent({
       createError.value = null;
       createSuccess.value = null;
 
+      console.log("检查 token 状态:", token.value);
       // 检查是否已登录
       if (!token.value) {
+        console.log("未登录，无法创建用户");
         createError.value = "请先登录后再创建用户！";
         return;
       }
 
+      console.log("调用创建用户接口，数据:", createForm);
       // 调用创建用户接口
       const success = await createUser(token.value, createForm.username, createForm.password, createForm.role);
+      console.log("创建用户接口返回结果:", success);
       if (success) {
         createSuccess.value = "用户创建成功";
       } else {
@@ -130,14 +84,18 @@ export default defineComponent({
       updateError.value = null;
       updateSuccess.value = null;
 
+      console.log("检查 token 状态:", token.value);
       // 检查是否已登录
       if (!token.value) {
+        console.log("未登录，无法修改用户");
         updateError.value = "请先登录后再修改用户！";
         return;
       }
 
+      console.log("调用修改用户接口，数据:", updateForm);
       // 调用修改用户接口
       const success = await updateUser(token.value, updateForm.username, updateForm.password, updateForm.role);
+      console.log("修改用户接口返回结果:", success);
       if (success) {
         updateSuccess.value = "用户信息更新成功";
       } else {
@@ -150,14 +108,18 @@ export default defineComponent({
       deleteError.value = null;
       deleteSuccess.value = null;
 
+      console.log("检查 token 状态:", token.value);
       // 检查是否已登录
       if (!token.value) {
+        console.log("未登录，无法删除用户");
         deleteError.value = "请先登录后再删除用户！";
         return;
       }
 
+      console.log("调用删除用户接口，用户名:", deleteForm.username);
       // 调用删除用户接口
       const success = await deleteUser(token.value, deleteForm.username);
+      console.log("删除用户接口返回结果:", success);
       if (success) {
         deleteSuccess.value = "用户删除成功";
       } else {
@@ -187,21 +149,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style scoped>
-input {
-  margin: 5px;
-  padding: 5px;
-}
-button {
-  margin: 5px;
-  padding: 5px;
-}
-
-/* 激活状态的按钮样式 */
-button.active {
-  font-weight: bold;
-  background-color: #007bff;
-  color: white;
-}
-</style>

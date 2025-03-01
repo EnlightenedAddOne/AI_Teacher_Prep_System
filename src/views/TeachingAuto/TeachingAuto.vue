@@ -21,7 +21,7 @@
                 <el-icon><Document /></el-icon>
               </div>
               <div class="feature-content">
-                <h3>教案生成</h3>
+                <h1>教案生成</h1>
                 <p>根据教学大纲和课程内容，快速生成高质量教案。</p>
               </div>
             </div>
@@ -37,7 +37,7 @@
                 <el-icon><VideoCamera /></el-icon>
               </div>
               <div class="feature-content">
-                <h3>教案和多媒体材料生成</h3>
+                <h1>教案和多媒体材料生成</h1>
                 <p>生成教案和与课程相关的多媒体教学材料，丰富教学内容。</p>
               </div>
             </div>
@@ -115,12 +115,28 @@
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="是否生成 PPT 视频">
-            <el-switch
-              v-model="teachingDesignRequest.ppt_turn_video"
-              @change="handlePptVideoChange"
+          <!-- 是否生成 PPT 视频 -->
+        <el-form-item label="是否生成 PPT 视频">
+          <el-switch
+            v-model="teachingDesignRequest.ppt_turn_video"
+            @change="handlePptVideoChange"
+          />
+        </el-form-item>
+
+        <!-- PPT 视频声线选择（仅在选择生成 PPT 视频时显示） -->
+        <el-form-item
+          label="PPT 视频声线"
+          v-if="teachingDesignRequest.ppt_turn_video"
+        >
+          <el-select v-model="teachingDesignRequest.voice_type">
+            <el-option
+              v-for="option in voiceOptions"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
             />
-          </el-form-item>
+          </el-select>
+        </el-form-item>
           <el-form-item label="是否推荐书籍">
             <el-switch
               v-model="teachingDesignRequest.resource_recommendation.require_books"
@@ -226,14 +242,17 @@
 
             <!-- 生成结果展示 -->
             <div v-else>
-              <!-- 浏览框 -->
-              <div class="preview-container">
-                <div v-html="formatMarkdown(teachingDesignResponse?.content)"></div>
-              </div>
+             <!-- 教案PDF -->
+             <h3>教案PDF</h3> <!-- 文字提示 -->
+             <div class="preview-container">
+                  <div v-html="formatMarkdown(teachingDesignResponse?.content)"></div> <!-- 浏览框 -->
+             </div>
               <!-- 下载按钮 -->
               <el-button class="download-button" type="success" @click="downloadPdf('teaching_design.pdf')">下载 PDF</el-button>
-              <!-- 图片展示 -->
+
+              <!-- 推荐图片 -->
               <div v-if="teachingDesignResponse?.images" class="carousel-container">
+                <h3>推荐图片</h3>
                 <el-carousel :autoplay="false" indicator-position="none" arrow="always">
                   <el-carousel-item v-for="image in teachingDesignResponse.images" :key="image.md5">
                     <div class="carousel-item">
@@ -245,6 +264,7 @@
                   </el-carousel-item>
                 </el-carousel>
               </div>
+
               <!-- PPT 视频展示 -->
               <div
                 v-if="teachingDesignResponse?.ppt_video_path"
@@ -256,6 +276,7 @@
                   controls
                 ></video>
               </div>
+
               <!-- 推荐资源展示 -->
               <div
                 v-if="teachingDesignResponse?.books"
@@ -306,7 +327,8 @@
         </el-card>
       </div>
     </div>
-  </div>
+</div>
+
 </template>
 
 <script lang="ts" setup>
@@ -348,6 +370,14 @@ const rules = {
   duration: [{ required: true, message: "请输入时长", trigger: "blur" }],
   grade: [{ required: true, message: "请输入年级", trigger: "blur" }],
 };
+
+const voiceOptions = [
+  { label: "年轻男声", value: "年轻男声" },
+  { label: "温暖女声", value: "温暖女声" },
+  { label: "播音男声", value: "播音男声" },
+  { label: "甜美女声", value: "甜美女声" },
+  { label: "活泼女声", value: "活泼女声" },
+];
 const teachingDesignForm = ref<FormInstance | null>(null);
 
 const handleWithImagesChange = () => {
@@ -359,6 +389,8 @@ const handlePptVideoChange = () => {
     // 无需设置默认值，因为已经初始化为false
   }
 };
+
+
 
 const handleBooksChange = () => {
   teachingDesignRequest.value.resource_recommendation.book_count = teachingDesignRequest.value.resource_recommendation.require_books ? 1 : 0;
@@ -428,7 +460,7 @@ const resetState = () => {
 <style scoped>
 /* 整体页面容器，设置内边距、字体、颜色和居中对齐 */
 .teaching-design-section {
-  padding: 20px; /* 页面上下左右内边距为20px */
+  padding: 50px; /* 页面上下左右内边距为20px */
   font-family: "Arial", sans-serif; /* 设置字体为Arial */
   color: #333; /* 设置文字颜色为深灰色 */
   display: flex; /* 使用flex布局 */
@@ -472,6 +504,15 @@ const resetState = () => {
     opacity: 1;
     transform: translateY(0); /* 定位到原位置 */
   }
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 24px;
+  font-weight: bold;
+  padding: 10px 20px;
 }
 
 /* 包裹两个入口文件的容器，宽度占满屏幕 */
@@ -541,7 +582,7 @@ const resetState = () => {
 
 /* 结果展示容器，宽度占满屏幕，内容居中 */
 .result-container {
-  width: 100%; /* 宽度占满屏幕 */
+  width: 85%; /* 宽度占满屏幕 */
   display: flex; /* 使用flex布局 */
   flex-direction: column; /* 子元素垂直排列 */
   align-items: center; /* 水平居中对齐 */
@@ -671,5 +712,27 @@ const resetState = () => {
 /* 资源容器 */
 .resource-container {
   margin-top: 20px; /* 与上一个元素的间距 */
+}
+
+.preview-container {
+  border: 1px solid #ddd; /* 边框为淡灰色 */
+  padding: 10px; /* 内边距 */
+  margin-top: 10px; /* 与标题的间距 */
+  max-height: 300px; /* 最大高度 */
+  overflow-y: auto; /* 超出部分显示滚动条 */
+  width: calc(100% - 20px); /* 宽度占满容器减去20px */
+  background-color: #fff; /* 背景颜色 */
+  border-radius: 8px; /* 圆角边框 */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* 添加阴影效果 */
+}
+
+h3 {
+  margin: 20px 0 10px; /* 标题的上下间距 */
+  text-align: left; /* 标题居中对齐 */
+  font-size: 20px;
+}
+
+h1{
+  font-size: 37px;
 }
 </style>

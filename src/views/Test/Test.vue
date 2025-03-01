@@ -10,7 +10,7 @@
     <div v-if="!isGenerating && !exercisesResponse" class="feature-box" @click="showExercisesForm = true">
       <el-icon><Edit /></el-icon>
       <div class="feature-content">
-        <h3>练习题生成</h3>
+        <h1>练习题生成</h1>
         <p>自动生成练习题，帮助学生巩固知识。</p>
       </div>
     </div>
@@ -343,5 +343,10 @@ const resetState = () => {
   color: #1677ff;
   text-decoration: none;
   cursor: pointer;
+}
+
+h1{
+  font-size: 37px;
+  text-align: center;
 }
 </style>

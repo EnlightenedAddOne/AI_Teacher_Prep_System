@@ -1,44 +1,65 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { ElMessageBox } from 'element-plus'
 import { isCollapse } from './IsCollapse'
-import { LoginInfo, logout } from '@/api/users'
-import { useRouter } from 'vue-router'
-const router = useRouter()
 
-const toself = async () => {
-  router.push('/Self');
+const router = useRouter()
+const route = useRoute()
+
+// 面包屑列表
+const breadcrumbList = ref([] as { path: string; name: string }[])
+
+// 生成面包屑路径
+const generateBreadcrumb = () => {
+  const matched = route.matched.filter(record => record.meta && record.meta.title)
+  breadcrumbList.value = matched.map(record => ({
+    path: record.path,
+    name: record.meta.title as string
+  }))
 }
 
-//退出事件处理
+// 监听路由变化，动态更新面包屑
+watch(route, generateBreadcrumb, { immediate: true })
+
+// 其他功能
+const toself = async () => {
+  router.push('/Self')
+}
+
 const handleLogout = async () => {
-  //1.询问用户确认退出
-  await ElMessageBox.confirm('确认要退出吗？', ' ', {
-    confirmButtonText: '确认',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).catch(() => {
-    return new Promise(() => {})
-  })
-  //2.执行退出
-  //await logout().catch(() => {})
-  //3.清空token
-  //
-  //4.跳转到login
-  router.push('/login')
+  try {
+    await ElMessageBox.confirm('确认要退出吗？', '', {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    // 执行退出操作
+    router.push('/login')
+  } catch (error) {
+    // 用户取消操作
+  }
 }
 </script>
 
 <template>
-  <!--头部-->
+  <!-- 头部 -->
   <el-header>
-    <!--图标-->
-    <el-icon @click="isCollapse=!isCollapse">
+    <!-- 收起侧边栏的图标 -->
+    <el-icon @click="isCollapse = !isCollapse">
       <IEpExpand v-show="isCollapse" />
       <IEpFold v-show="!isCollapse" />
     </el-icon>
 
-    <!--下拉菜单-->
-    <el-dropdown>
+    <!-- 面包屑组件 -->
+    <el-breadcrumb separator="/" class="breadcrumb">
+      <el-breadcrumb-item v-for="item in breadcrumbList" :key="item.path" :to="item.path">
+        {{ item.name }}
+      </el-breadcrumb-item>
+    </el-breadcrumb>
+
+    <!-- 下拉菜单 -->
+    <el-dropdown class="dropdown">
       <span class="el-dropdown-link">
         <el-avatar
           :size="32"
@@ -80,5 +101,11 @@ const handleLogout = async () => {
   justify-content: center;
   align-items: center;
   outline: none;
+}
+
+.breadcrumb {
+  margin-left: 16px;
+  flex: 1;
+  font-size: 16px; /* 字体放大 */
 }
 </style>
