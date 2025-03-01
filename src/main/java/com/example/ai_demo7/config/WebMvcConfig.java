@@ -13,7 +13,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(jwtInterceptor)
-                .addPathPatterns("/admin/**") // 保护管理员接口
-                .excludePathPatterns("/login"); // 开放登录接口
+                .addPathPatterns("/admin/**", "/teacher/**")
+                .excludePathPatterns("/login");
     }
 }
