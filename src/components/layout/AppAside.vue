@@ -19,21 +19,21 @@ import { isCollapse } from './IsCollapse';
         </div>
       </el-menu-item>
 
-      <el-menu-item index="/Record">
-        <div class="icon-text-wrapper">
-          <el-icon>
-            <IEpSetting />
-          </el-icon>
-          <span>备课记录</span>
-        </div>
-      </el-menu-item>
-
       <el-menu-item index="/Test">
         <div class="icon-text-wrapper">
           <el-icon>
             <IEpSetting />
           </el-icon>
           <span>智能习题生成器</span>
+        </div>
+      </el-menu-item>
+
+      <el-menu-item index="/OnlineTest">
+        <div class="icon-text-wrapper">
+          <el-icon>
+            <IEpSetting />
+          </el-icon>
+          <span>在线测生成器</span>
         </div>
       </el-menu-item>
 
