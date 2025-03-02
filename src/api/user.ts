@@ -1,94 +1,125 @@
 import axios from "axios";
-import type { AxiosResponse } from "axios";
 
-const baseURL1 = "http://localhost:8080"; // 修改后的基础 URL
-const TIMEOUT = 200000; // 超时时间设置为 200秒
+const baseURL = "/api"; // 使用 Vite 代理，直接以 /api 开头
 
 // 登录接口
-export const login = async (username: string, password: string): Promise<string | null> => {
-    try {
-        const response: AxiosResponse<{ token: string }> = await axios.post(`${baseURL1}/login`, {
-            username,
-            password,
-        }, { timeout: TIMEOUT });
-        const token = response.data.token;
-        console.log("登录成功，返回的 token:", token);
-        return token;
-    } catch (error) {
-        console.error("登录失败", error);
-        return null;
-    }
+export const login = async (username: string, password: string) => {
+  try {
+    const response = await axios.post(`${baseURL}/login`, { username, password });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
-// 创建用户接口
-export const createUser = async (token: string, username: string, password: string, role: string): Promise<boolean> => {
-    try {
-        const response: AxiosResponse<{ message: string }> = await axios.post(
-            `${baseURL1}/admin/create-user`,
-            {
-                username,
-                password,
-                role,
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-                timeout: TIMEOUT
-            }
-        );
-        const success = response.data.message === "用户创建成功";//这里改成后端返回的成功语句后面几个函数一样
-        console.log("创建用户接口返回的结果:", success);
-        return success;
-    } catch (error) {
-        console.error("用户创建失败", error);
-        return false;
-    }
+// 管理员创建用户
+export const createUser = async (token: string, user: { username: string; password: string; role: string; createdBy?: string }) => {
+  try {
+    const response = await axios.post(
+      `${baseURL}/admin/create-user`,
+      user,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
-// 修改用户接口
-export const updateUser = async (token: string, username: string, password: string, role: string): Promise<boolean> => {
-    try {
-        const response: AxiosResponse<{ message: string }> = await axios.put(
-            `${baseURL1}/admin/update-user`,
-            {
-                username,
-                password,
-                role,
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-                timeout: TIMEOUT
-            }
-        );
-        const success = response.data.message === "用户信息更新成功";
-        console.log("修改用户接口返回的结果:", success);
-        return success;
-    } catch (error) {
-        console.error("用户信息更新失败", error);
-        return false;
-    }
+// 管理员删除用户
+export const deleteUser = async (token: string, username: string) => {
+  try {
+    const response = await axios.delete(`${baseURL}/admin/delete-user/${username}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
-// 删除用户接口
-export const deleteUser = async (token: string, username: string): Promise<boolean> => {
-    try {
-        const response: AxiosResponse<{ message: string }> = await axios.delete(
-            `${baseURL1}/admin/delete-user/${username}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-                timeout: TIMEOUT
-            }
-        );
-        const success = response.data.message === "用户删除成功";
-        console.log("删除用户接口返回的结果:", success);
-        return success;
-    } catch (error) {
-        console.error("用户删除失败", error);
-        return false;
-    }
+// 管理员更新用户
+export const updateUser = async (token: string, user: { username: string; password: string; role: string }) => {
+  try {
+    const response = await axios.put(
+      `${baseURL}/admin/update-user`,
+      user,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// 管理员获取所有用户
+export const getAllUsers = async (token: string) => {
+  try {
+    const response = await axios.get(`${baseURL}/admin/users`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// 管理员分配学生给教师
+export const assignStudentToTeacher = async (token: string, studentUsername: string, teacherUsername: string) => {
+  try {
+    const response = await axios.put(
+      `${baseURL}/admin/assign-student`,
+      { studentUsername, teacherUsername }, // 将参数放在请求体中
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// 教师创建学生
+export const createStudent = async (token: string, student: { username: string; password: string }) => {
+  try {
+    const response = await axios.post(
+      `${baseURL}/teacher/create-student`,
+      { username: student.username, password: student.password }, // 移除 role 字段
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// 教师获取所有学生
+export const getStudents = async (token: string) => {
+  try {
+    const response = await axios.get(`${baseURL}/teacher/students`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// 教师删除学生
+export const deleteStudent = async (token: string, username: string) => {
+  try {
+    const response = await axios.delete(`${baseURL}/teacher/delete-student/${username}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 };

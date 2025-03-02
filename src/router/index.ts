@@ -14,8 +14,7 @@ const router = createRouter({
     {
       path: '/TestLogin',
       name: 'TestLogin',
-      component: () => import('@/views/TestLogin.vue'),
-      meta: { title: '测试用户功能页' }
+      component: () => import('@/views/TestLogin.vue')
     },
     {
       path: '/login',
