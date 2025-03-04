@@ -6,7 +6,7 @@ import { isCollapse } from './IsCollapse';
 <template>
   <el-aside>
     <el-menu router unique-opened :collapse="isCollapse">
-      <a href="/" class="logo">
+      <a href="/IndexView" class="logo">
         <h1>AI辅助教师备课系统</h1>
       </a>
 
@@ -34,6 +34,15 @@ import { isCollapse } from './IsCollapse';
             <IEpSetting />
           </el-icon>
           <span>在线测生成器</span>
+        </div>
+      </el-menu-item>
+
+      <el-menu-item index="/UserManagement">
+        <div class="icon-text-wrapper">
+          <el-icon>
+            <IEpSetting />
+          </el-icon>
+          <span>用户管理</span>
         </div>
       </el-menu-item>
 

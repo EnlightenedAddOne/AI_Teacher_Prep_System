@@ -24,14 +24,30 @@ const onSubmit = async () => {
   try {
     // 调用登录接口
     const response = await login(form.username, form.password);
-    // 假设登录接口返回一个 token
-    const token = response.token;
+    // 假设登录接口返回一个 token 和用户角色(等待后端接口调整)
+    //const { token, role } = response;
+    const token = response; // 逻辑测试语句
+    const role = "ADMIN"; // 逻辑测试语句
 
-    // 将 token 存储到 localStorage 中
+    // 检查角色是否正确存储
+    console.log("登录成功，角色为：", role);
+    // 将 token 和角色存储到 localStorage 中
     localStorage.setItem("token", token);
+    localStorage.setItem("role", role);
+
+     // 检查角色是否正确存储到 localStorage
+     const storedRole = localStorage.getItem("role");
+     console.log("存储的角色为：", storedRole);
+
+    // 将当前登录的用户名存储到 localStorage 中
+    localStorage.setItem("currentUsername", form.username); // 存储用户名
+
+    // 检查角色是否正确存储到 localStorage
+    const storedName = localStorage.getItem("currentUsername");
+    console.log("存储的名字为：", storedName);
 
     // 登录成功，跳转到主页
-    router.push("/");
+    router.push("/IndexView");
   } catch (error) {
     // 显式忽略 error 变量
     void error;
@@ -50,21 +66,16 @@ const rules = reactive<FormRules>({
     { required: true, message: "请输入密码" }
   ]
 });
-
-const formRef = ref<FormInstance>();
-
-// 随机生成星星位置
+// 生成星星的随机位置
 const randomPosition = () => {
-  const top = Math.random() * 100; // 0-100%
-  const left = Math.random() * 100; // 0-100%
+  const top = Math.random() * 100;
+  const left = Math.random() * 100;
   return {
     top: `${top}%`,
-    left: `${left}%`
+    left: `${left}%`,
   };
 };
-
-// 确保 randomPosition 函数在模板中可用
-defineExpose({ randomPosition });
+const formRef = ref<FormInstance>();
 </script>
 
 <template>
@@ -84,7 +95,7 @@ defineExpose({ randomPosition });
         </p>
       </div>
       <div class="login">
-        <h2 class="login-title">登录</h2> <!-- 登录标题 -->
+        <h2 class="login-title">登录</h2>
         <el-form
           :model="form"
           label-width="auto"
@@ -120,7 +131,6 @@ defineExpose({ randomPosition });
 </template>
 
 <style lang="scss" scoped>
-
 .login-container {
   position: relative;
   height: 100vh;
@@ -136,7 +146,7 @@ defineExpose({ randomPosition });
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #a2d2ff, #c9f1df, #e6f7ff, #f5f5f5); /* 蓝绿灰白渐变 */
+  background: linear-gradient(135deg, #a2d2ff, #c9f1df, #e6f7ff, #f5f5f5);
   z-index: -1;
   animation: gradient 15s infinite;
 }
@@ -178,8 +188,8 @@ defineExpose({ randomPosition });
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 53%; /* 宽度调整 */
-  padding: 40px; /* 增加内边距 */
+  width: 53%;
+  padding: 40px;
 }
 
 .introduction {
@@ -191,31 +201,31 @@ defineExpose({ randomPosition });
 .system-title {
   font-size: 2.5rem;
   font-weight: bold;
-  color: #000; /* 系统标题文字为黑色 */
+  color: #000;
   margin-bottom: 20px;
 }
 
 .description {
   font-size: 1rem;
-  color: #333; /* 描述文字颜色 */
+  color: #333;
   line-height: 1.6;
 }
 
 .login {
   flex: 1;
   margin-left: 40px;
-  padding: 30px; /* 增加内边距 */
-  background-color: rgba(255, 255, 255, 0); /* 完全透明 */
-  border: 1px solid rgba(73, 73, 73, 0.2); /* 深色边框 */
-  border-radius: 15px; /* 圆角调整 */
+  padding: 30px;
+  background-color: rgba(255, 255, 255, 0);
+  border: 1px solid rgba(73, 73, 73, 0.2);
+  border-radius: 15px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-  width: 300px; /* 设置一个固定宽度 */
+  width: 300px;
 }
 
 .login-title {
   font-size: 2rem;
   font-weight: bold;
-  color: #000; /* 登录标题文字为黑色 */
+  color: #000;
   margin-bottom: 20px;
 }
 
@@ -228,41 +238,40 @@ defineExpose({ randomPosition });
 }
 
 .glass-input {
-  background-color: transparent; /* 输入框背景透明 */
-  border: 1px solid rgba(255, 255, 255, 0.5); /* 输入框边框透明 */
-  border-radius: 10px; /* 输入框圆角 */
-  padding: 10px; /* 输入框内边距 */
-  color: #000; /* 输入框文字颜色改为黑色 */
-  font-weight: bold; /* 输入框文字加粗 */
-  caret-color: #000; /* 输入光标颜色改为黑色 */
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 10px;
+  padding: 10px;
+  color: #000;
+  font-weight: bold;
+  caret-color: #000;
 }
 
 .black-button {
   width: 100%;
   margin-top: 10px;
-  background-color: #000; /* 按钮背景为黑色 */
-  border: 1px solid #000; /* 按钮边框为黑色 */
-  border-radius: 10px; /* 按钮圆角 */
-  color: #fff; /* 按钮文字颜色为白色 */
-  font-weight: bold; /* 按钮文字加粗 */
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* 按钮阴影 */
-  transition: all 0.3s ease; /* 添加过渡效果 */
+  background-color: #000;
+  border: 1px solid #000;
+  border-radius: 10px;
+  color: #fff;
+  font-weight: bold;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
   &:hover {
-    background-color: #333; /* 鼠标悬停时的背景颜色 */
-    border-color: #333; /* 鼠标悬停时的边框颜色 */
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5); /* 鼠标悬停时的阴影效果 */
+    background-color: #333;
+    border-color: #333;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
   }
 }
 
-/* 修改表单标签和占位符的颜色 */
 .el-form-item__label {
-  color: #000; /* 标签文字颜色改为黑色 */
+  color: #000;
 }
 
 ::v-deep(.el-input__inner) {
-  background-color: transparent !important; /* 输入框背景完全透明 */
-  color: #000 !important; /* 输入框文字颜色为黑色 */
-  caret-color: #000; /* 输入光标颜色为黑色 */
+  background-color: transparent !important;
+  color: #000 !important;
+  caret-color: #000;
 }
 
 ::v-deep(.el-input__placeholder) {

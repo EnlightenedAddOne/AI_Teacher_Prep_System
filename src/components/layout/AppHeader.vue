@@ -33,13 +33,19 @@ const handleLogout = async () => {
       confirmButtonText: '确认',
       cancelButtonText: '取消',
       type: 'warning'
-    })
+    });
+
+    // 清理缓存
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("currentUsername");
+
     // 执行退出操作
-    router.push('/login')
+    router.push('/login');
   } catch (error) {
-    // 用户取消操作
+    void error;
   }
-}
+};
 </script>
 
 <template>

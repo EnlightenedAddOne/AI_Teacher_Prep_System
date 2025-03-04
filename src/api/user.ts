@@ -71,27 +71,34 @@ export const getAllUsers = async (token: string) => {
 // 管理员分配学生给教师
 export const assignStudentToTeacher = async (token: string, studentUsername: string, teacherUsername: string) => {
   try {
+    // 构造请求 URL，将参数作为查询参数传递
+    const url = `${baseURL}/admin/assign-student?studentUsername=${studentUsername}&teacherUsername=${teacherUsername}`;
     const response = await axios.put(
-      `${baseURL}/admin/assign-student`,
-      { studentUsername, teacherUsername }, // 将参数放在请求体中
+      url,
+      null,
       {
         headers: { Authorization: `Bearer ${token}` },
       }
     );
+
     return response.data;
   } catch (error) {
     throw error;
   }
 };
 
+
 // 教师创建学生
 export const createStudent = async (token: string, student: { username: string; password: string }) => {
+  console.log("调用接口时Token:", token);
   try {
     const response = await axios.post(
       `${baseURL}/teacher/create-student`,
-      { username: student.username, password: student.password }, // 移除 role 字段
+      student,
       {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
     );
     return response.data;
@@ -123,3 +130,5 @@ export const deleteStudent = async (token: string, username: string) => {
     throw error;
   }
 };
+
+
