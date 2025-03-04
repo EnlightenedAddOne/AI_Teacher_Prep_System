@@ -1,3 +1,4 @@
+# 获取图片
 import hashlib
 import json
 import logging
@@ -143,9 +144,10 @@ class BingImagesSpider:
             'csdnimg.cn': {'Referer': 'https://blog.csdn.net/'},
             'github.io': {'Referer': 'https://github.com/'}
         }
-        # 修正为正确的三级父目录（src -> Langchain -> 项目根目录）
-        current_dir = Path(__file__).parent  # src目录
-        self.output_dir = current_dir.parent / "output" / "Images"  # Langchain/output/Images
+        # 修正为正确的项目根目录路径
+        current_dir = Path(__file__).parent  # Multimedia目录
+        project_root = current_dir.parent.parent  # 上升两级到项目根目录
+        self.output_dir = project_root / "output" / "Images"  # Langchain/output/Images
 
         # 强制创建目录（与PDF生成逻辑一致）
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -424,7 +426,7 @@ if __name__ == '__main__':
     # 使用示例
     spider = BingImagesSpider(
         keyword="网络协议",
-        amount=7,
+        amount=2,
         proxy_list=["http://127.0.0.1:8080"]  # 如需代理可取消注释
     )
 

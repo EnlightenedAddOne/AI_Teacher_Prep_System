@@ -76,13 +76,15 @@ class LLMFactory:
         )
 
     @staticmethod
-    def call_deepseek(client, system_prompt: str, user_prompt: str, model: str = "deepseek-reasoner", temperature: float = 0.3):
+    def call_deepseek(client, system_prompt: str, user_prompt: str, model: str = "deepseek-chat", temperature: float = 0.2):
         """
         调用 DeepSeek API
         :param client: DeepSeek客户端实例
         :param system_prompt: 系统角色提示词
         :param user_prompt: 用户提示词
         :param model:模型参数
+            - deepseek-chat: v3模型
+            - deepseek-reasoner: R1模型
         :param temperature: 温度参数，控制输出的随机性
         :return: 响应文本
         """

@@ -1,5 +1,5 @@
 from typing import List, Optional, Dict, Union
-
+from enum import Enum
 from pydantic import BaseModel, Field
 
 
@@ -46,7 +46,7 @@ class TeachingDesignResponse(BaseModel):
     books: Optional[List[RecommendedBook]] = None
     papers: Optional[List[RecommendedPaper]] = None
     videos: Optional[List[RecommendedVideo]] = None
-    design_id: str
+    design_id: str  # 唯一ID
 
 
 class ExerciseResponse(BaseModel):
@@ -90,3 +90,43 @@ class OnlineTestResponse(BaseModel):
     exam_id: int  # 试卷ID
     questions: List[Question]  # 题目列表
     test_info: TestInfo  # 试卷信息
+
+
+class GradingStatus(str, Enum):
+    """批改状态枚举"""
+    PENDING = "pending"  # 待批改
+    GRADED = "graded"  # 已批改
+    PENDING_MANUAL = "pending_manual"  # 待人工批改
+
+
+class QuestionDetail(BaseModel):
+    """单个题目的批改详情"""
+    exam_question_id: int  # 试卷题目ID
+    question_type: str  # 题目类型(single_choice/judgment/fill_blank/short_answer/application)
+    content: str  # 题目内容
+    assigned_score: float  # 题目分值
+    student_answer: str  # 学生答案
+    correct_answer: str  # 正确答案
+    explanation: Optional[str] = None  # 答案解析
+    final_score: float  # 最终得分
+    status: GradingStatus  # 批改状态
+
+
+class ScoreSummary(BaseModel):
+    """得分统计信息"""
+    objective_score: float  # 客观题得分(选择题和判断题)
+    objective_total: float  # 客观题总分
+    subjective_score: float  # 主观题得分(填空题、简答题和应用计算题)
+    subjective_total: float  # 主观题总分
+    total_score: float  # 总分
+    total_possible: float  # 试卷总分
+
+
+class StudentAnswerResponse(BaseModel):
+    """学生作答批改响应"""
+    record_id: int  # 作答记录ID
+    student_id: str  # 学生ID
+    exam_id: int  # 试卷ID
+    status: GradingStatus  # 批改状态
+    score_summary: ScoreSummary  # 得分统计
+    question_details: List[QuestionDetail]  # 题目批改详情列表

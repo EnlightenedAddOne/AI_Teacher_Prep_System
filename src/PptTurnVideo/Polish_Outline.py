@@ -1,3 +1,4 @@
+# 讲授稿润色和生成PPT大纲
 import json
 from src.utils import text_polishing_prompt, ppt_outline_prompt
 from src.llm_integration import LLMFactory
@@ -20,7 +21,7 @@ def text_polishing(api_key, original_txt):
         system_prompt = "你是一个专业的文本优化助手，严格按照JSON格式输出结果"
         
         # 调用 API
-        raw_response = LLMFactory.call_deepseek(client, system_prompt, prompt, model="deepseek-reasoner")
+        raw_response = LLMFactory.call_deepseek(client, system_prompt, prompt, model="deepseek-chat")
         if not raw_response:
             return []
 
@@ -58,7 +59,7 @@ def ppt_outline(api_key, subject, topic):
         system_prompt = "你是一个专业的PPT大纲设计专家，严格按照JSON格式输出结果"
         
         # 调用 API
-        raw_response = LLMFactory.call_deepseek(client, system_prompt, prompt, model="deepseek-reasoner")
+        raw_response = LLMFactory.call_deepseek(client, system_prompt, prompt, model="deepseek-chat")
         if not raw_response:
             return ""
 

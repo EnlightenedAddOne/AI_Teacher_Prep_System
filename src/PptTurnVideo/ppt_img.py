@@ -1,3 +1,4 @@
+# 将PPT转为图片序列
 import os
 import subprocess
 import time

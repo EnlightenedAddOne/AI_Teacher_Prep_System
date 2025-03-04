@@ -1,3 +1,4 @@
+# 获取PPT讲授稿
 from pptx import Presentation
 import re
 from src.PptTurnVideo.Polish_Outline import text_polishing

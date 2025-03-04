@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, field_validator
 from pydantic import ValidationInfo
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 
 class ResourceRecommendationRequest(BaseModel):
@@ -78,3 +78,24 @@ class OnlineTestRequest(BaseModel):
             if 'count' not in v[q_type] or 'score' not in v[q_type]:
                 raise ValueError(f"必须包含count和score字段: {q_type}")
         return v
+
+
+class AnswerData(BaseModel):
+    """答案数据结构，根据题目类型包含不同的答案格式"""
+    selected_option: Optional[str] = None  # 单选题或判断题的选项标识(A/B/C/D或T/F)
+    filled_answers: Optional[List[str]] = None  # 填空题的答案列表
+    content: Optional[str] = None  # 简答题或应用计算题的答案内容
+
+
+class StudentAnswer(BaseModel):
+    """单个题目的作答信息"""
+    exam_question_id: int  # 试卷题目ID
+    question_type: str  # 题目类型(single_choice/judgment/fill_blank/short_answer/application)
+    answer_data: AnswerData  # 答案数据
+
+
+class StudentAnswerRequest(BaseModel):
+    """学生作答请求"""
+    exam_id: int  # 试卷ID
+    student_id: str  # 学生ID
+    answers: List[StudentAnswer]  # 答案列表

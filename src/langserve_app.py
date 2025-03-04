@@ -1,8 +1,8 @@
 # 程序入口
+import datetime
 import logging
 import os
 from pathlib import Path
-import datetime
 
 from fastapi import FastAPI, HTTPException, APIRouter
 from fastapi.responses import FileResponse
@@ -10,18 +10,19 @@ from fastapi.staticfiles import StaticFiles
 
 from Multimedia import BingImagesSpider, ResourceRecommender, get_bilibili_videos
 from Online_Test import generate_online_test
+from Online_Test.Grade_student_answers import grade_student_answers
 from configs import config
 from education_sql import Session, export_exam_to_json
-
 from exercise_generation import generate_exercises
 from models import (TeachingDesignRequest, ExerciseRequest,
                     TeachingDesignResponse, ExerciseResponse,
                     OnlineTestRequest, OnlineTestResponse, TeachingImage,
-                    RecommendedBook, RecommendedPaper, RecommendedVideo)
+                    RecommendedBook, RecommendedPaper, RecommendedVideo,
+                    StudentAnswerRequest, StudentAnswerResponse)
 from pdf_generator import content_to_pdf
+from ppt_turn_video import create_ppt_videos
 from teaching_design import generate_teaching_design
 from utils import setup_cors  # 导入工具函数
-from ppt_turn_video import create_ppt_videos
 
 app = FastAPI()
 
@@ -251,22 +252,20 @@ async def generate_online_test_endpoint(request: OnlineTestRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/get-exam/{exam_id}", response_model=OnlineTestResponse)
-async def get_exam_endpoint(exam_id: int):
+@app.post("/grade-student-answers", response_model=StudentAnswerResponse)
+async def grade_student_answers_endpoint(request: StudentAnswerRequest):
+    """批改学生作答"""
     try:
+        # 创建数据库会话
         session = Session()
         try:
-            exported_data = export_exam_to_json(session, exam_id)
-            if not exported_data:
-                raise HTTPException(status_code=404, detail="试卷不存在")
-
-            return OnlineTestResponse(
-                exam_id=exam_id,
-                questions=exported_data['questions'],
-                test_info=exported_data['test_info']
-            )
+            # 调用业务逻辑函数进行批改
+            response = grade_student_answers(session, request)
+            return response
         finally:
             session.close()
-
+            
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

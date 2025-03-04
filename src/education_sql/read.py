@@ -1,4 +1,4 @@
-from .Create import *
+from src.education_sql.Create import *
 
 
 def export_exam_to_json(session, exam_id):
@@ -58,7 +58,8 @@ def export_exam_to_json(session, exam_id):
                 "knowledge_points": [p.point_name for p in question.knowledge_points],
                 "subject": question.subject.subject_name,
                 "topic": question.topic,
-                "degree": reverse_convert_difficulty(question.difficulty)
+                "degree": reverse_convert_difficulty(question.difficulty),
+                "category": '客观题' if question.question_category == 'objective' else '主观题',
             }
 
             # 处理选项
@@ -75,9 +76,9 @@ def export_exam_to_json(session, exam_id):
 
             result["questions"].append(question_data)
 
-        # 添加学科信息到根节点（根据原始数据格式）
-        if exam_questions:
-            result["subject"] = exam_questions[0].question.subject.subject_name
+        # 不再添加学科信息到根节点
+        # if exam_questions:
+        #     result["subject"] = exam_questions[0].question.subject.subject_name
 
         return result
 
@@ -87,7 +88,7 @@ def export_exam_to_json(session, exam_id):
 
 
 def reverse_convert_type(db_type):
-    """将数据库题型转换为原始中文类型"""
+    """将数据库题型转换为中文类型"""
     type_map = {
         'single_choice': '选择题',
         'multi_choice': '多选题',
@@ -96,16 +97,21 @@ def reverse_convert_type(db_type):
         'short_answer': '简答题',
         'application': '应用计算题'
     }
+    
     # 先标准化输入
     db_type = db_type.strip()  # 移除空白字符
     
-    if db_type not in type_map:
-        print(f"警告：未知的题型 {db_type}")
-        # 如果输入已经是中文类型，检查是否是有效的源类型
-        if db_type in [v for v in type_map.values()]:
-            return db_type
+    # 如果已经是中文类型，直接返回
+    if db_type in type_map.values():
+        return db_type
     
-    return type_map.get(db_type, db_type)
+    # 如果是数据库类型，转换为中文
+    if db_type in type_map:
+        return type_map[db_type]
+    
+    # 如果是未知类型，记录警告并返回原始类型
+    print(f"警告：未知的题型 {db_type}")
+    return db_type
 
 
 def reverse_convert_difficulty(difficulty_value):
