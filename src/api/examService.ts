@@ -8,8 +8,9 @@ import type {
   OnlineTestResponse
 } from '@/types/exam';
 
+export const baseURL ='http://192.168.63.215:8000';
 const apiClient = axios.create({
-  baseURL: 'http://192.168.63.215:8000', // 后端运行地址
+  baseURL: baseURL,  // 后端运行地址
   timeout: 100* 60 * 1000, // 设置超时时间为 10 分钟
 });
 

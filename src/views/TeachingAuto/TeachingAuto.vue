@@ -265,16 +265,10 @@
                 </el-carousel>
               </div>
 
-              <!-- PPT 视频展示 -->
-              <div
-                v-if="teachingDesignResponse?.ppt_video_path"
-                class="video-container"
-              >
+             <!-- PPT 视频展示 -->
+              <div v-if="teachingDesignResponse?.ppt_video_path" class="video-container">
                 <h3>PPT 视频</h3>
-                <video
-                  :src="teachingDesignResponse.ppt_video_path"
-                  controls
-                ></video>
+                <video :src="getFullVideoPath(teachingDesignResponse.ppt_video_path)" controls></video>
               </div>
 
               <!-- 推荐资源展示 -->
@@ -333,7 +327,7 @@
 
 <script lang="ts" setup>
 import { ref } from "vue";
-import { generateTeachingDesign, downloadPdf as apiDownloadPdf } from "@/api/examService";
+import { generateTeachingDesign, downloadPdf as apiDownloadPdf ,baseURL} from "@/api/examService";
 import type { TeachingDesignRequest, TeachingDesignResponse } from "@/types/exam";
 import { Loading, Document, VideoCamera } from "@element-plus/icons-vue";
 import { marked } from "marked";
@@ -386,7 +380,7 @@ const handleWithImagesChange = () => {
 
 const handlePptVideoChange = () => {
   if (!teachingDesignRequest.value.ppt_turn_video) {
-    // 无需设置默认值，因为已经初始化为false
+    // 初始化为false
   }
 };
 
@@ -454,6 +448,10 @@ const resetState = () => {
   showTeachingDesignDialog.value = false;
   teachingDesignResponse.value = null;
   isGenerating.value = false; // 重置标志变量
+};
+
+const getFullVideoPath = (relativePath: string) => {
+  return `${baseURL}${relativePath}`; // 拼接完整的视频路径
 };
 </script>
 
