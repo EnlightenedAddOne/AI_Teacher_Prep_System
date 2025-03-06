@@ -27,7 +27,7 @@ const onSubmit = async () => {
     // 假设登录接口返回一个 token 和用户角色(等待后端接口调整)
     //const { token, role } = response;
     const token = response; // 逻辑测试语句
-    const role = "TEACHER"; // 逻辑测试语句
+    const role = "ADMIN"; // 逻辑测试语句
 
     // 检查角色是否正确存储
     console.log("登录成功，角色为：", role);

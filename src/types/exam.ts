@@ -96,26 +96,13 @@ export interface ExerciseResponse {
   answers_pdf_url: string;
 }
 
-export interface OnlineTestRequest {
-  subject: string;
-  topic: string;
-  degree: string;
-  time_limit: number;
-  questions: {
-    [key: string]: {
-      count: number;
-      score: number;
-    };
-  };
-}
-
 export interface Question {
   number: string;
   type: string;
   score: number;
   id: number;
   content: string;
-  options?: QuestionOption[];
+  options?: QuestionOption[] | null;  // 允许为 null
   correct_answer: string;
   explanation: string;
   knowledge_points: string[];
@@ -134,8 +121,48 @@ export interface TestInfo {
   time_limit: number;
 }
 
+export interface OnlineTestRequest {
+  subject: string;
+  topic: string;
+  degree: string;
+  time_limit: number;
+  questions: {
+    choice: { count: number; score: number };
+    fill: { count: number; score: number };
+    judge: { count: number; score: number };
+    short_answer: { count: number; score: number };
+    application: { count: number; score: number };
+  };
+}
+
 export interface OnlineTestResponse {
   exam_id: number;
   questions: Question[];
   test_info: TestInfo;
+}
+
+export interface GradingResult {
+  record_id: number;
+  student_id: string;
+  exam_id: number;
+  status: string;
+  score_summary: {
+    objective_score: number;
+    objective_total: number;
+    subjective_score: number;
+    subjective_total: number;
+    total_score: number;
+    total_possible: number;
+  };
+  question_details: {
+    exam_question_id: number;
+    question_type: string;
+    content: string;
+    assigned_score: number;
+    student_answer: string;
+    correct_answer: string;
+    explanation: string;
+    final_score: number;
+    status: string;
+  }[];
 }
