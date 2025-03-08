@@ -13,7 +13,7 @@ import { isCollapse } from './IsCollapse';
       <el-menu-item index="/TeachingAuto">
         <div class="icon-text-wrapper">
           <el-icon>
-            <IEpSetting />
+            <IEpDocument />
           </el-icon>
           <span>智能备课助手</span>
         </div>
@@ -22,7 +22,7 @@ import { isCollapse } from './IsCollapse';
       <el-menu-item index="/Test">
         <div class="icon-text-wrapper">
           <el-icon>
-            <IEpSetting />
+            <IEpEditPen />
           </el-icon>
           <span>智能习题生成器</span>
         </div>
@@ -31,7 +31,7 @@ import { isCollapse } from './IsCollapse';
       <el-menu-item index="/OnlineTest">
         <div class="icon-text-wrapper">
           <el-icon>
-            <IEpSetting />
+            <IEpList />
           </el-icon>
           <span>在线测生成器</span>
         </div>
@@ -40,7 +40,7 @@ import { isCollapse } from './IsCollapse';
       <el-menu-item index="/UserManagement">
         <div class="icon-text-wrapper">
           <el-icon>
-            <IEpSetting />
+            <IEpUser />
           </el-icon>
           <span>用户管理</span>
         </div>
@@ -49,7 +49,7 @@ import { isCollapse } from './IsCollapse';
       <el-menu-item index="/StudentAnalysis">
         <div class="icon-text-wrapper">
           <el-icon>
-            <IEpSetting />
+            <IEpDataAnalysis />
           </el-icon>
           <span>智能学情分析</span>
         </div>

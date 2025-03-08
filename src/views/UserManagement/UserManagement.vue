@@ -1,15 +1,7 @@
 <template>
   <div class="user-management">
-    <el-tabs v-model="activeTab" type="card">
-      <!-- 管理员用户管理 -->
-      <el-tab-pane label="用户管理" name="userManagement" v-if="userRole === 'ADMIN'">
-        <AdminUserManagement />
-      </el-tab-pane>
-      <!-- 教师学生管理 -->
-      <el-tab-pane label="学生管理" name="studentManagement" v-if="userRole === 'TEACHER'">
-        <TeacherStudentManagement />
-      </el-tab-pane>
-    </el-tabs>
+    <!-- 动态渲染组件 -->
+    <component :is="currentComponent" />
   </div>
 </template>
 
@@ -18,8 +10,8 @@ import { ref, onMounted } from "vue";
 import AdminUserManagement from "@/views/AdminUserManagement/AdminUserManagement.vue";
 import TeacherStudentManagement from "@/views/TeacherStudentManagement/TeacherStudentManagement.vue";
 
-const activeTab = ref("userManagement");
 const userRole = ref(""); // 当前用户角色
+const currentComponent = ref(null); // 当前要渲染的组件
 
 // 获取当前用户角色
 onMounted(() => {
@@ -27,6 +19,12 @@ onMounted(() => {
   console.log("进入用户管理界面当前用户角色：", role);
   if (role) {
     userRole.value = role;
+    // 根据角色设置当前组件
+    if (role === "ADMIN") {
+      currentComponent.value = AdminUserManagement;
+    } else if (role === "TEACHER") {
+      currentComponent.value = TeacherStudentManagement;
+    }
   }
 });
 </script>
